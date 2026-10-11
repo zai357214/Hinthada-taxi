@@ -1,0 +1,2903 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#ffffff" />
+<title>Hinthada Taxi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Padauk:wght@400;700&family=Noto+Sans+Myanmar:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --r-sm:6px;--r:10px;--r-lg:14px;--r-xl:20px;
+  --tab-h:62px;
+  --ff:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --mm:'Padauk','Noto Sans Myanmar',sans-serif;
+  --ease:.2s cubic-bezier(.4,0,.2,1);
+}
+body.light{
+  --bg:#f8fafc;--card:#ffffff;--card-2:#f1f5f9;--card-3:#e2e8f0;
+  --border:#e2e8f0;--border-2:#cbd5e1;
+  --text:#0f172a;--text-2:#64748b;--text-3:#94a3b8;
+  --primary:#2563eb;--primary-2:#1d4ed8;--primary-soft:#eff6ff;
+  --success:#059669;--success-soft:#ecfdf5;
+  --danger:#dc2626;--danger-soft:#fef2f2;
+  --warning:#ea580c;--warning-soft:#fff7ed;
+  --gold:#d97706;--gold-soft:#fffbeb;
+  --shadow:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+  --shadow-lg:0 10px 30px rgba(15,23,42,.08);
+  --overlay:rgba(15,23,42,.55);
+}
+body.dark{
+  --bg:#0f172a;--card:#1e293b;--card-2:#334155;--card-3:#475569;
+  --border:#334155;--border-2:#475569;
+  --text:#f8fafc;--text-2:#cbd5e1;--text-3:#94a3b8;
+  --primary:#3b82f6;--primary-2:#60a5fa;--primary-soft:#1e3a8a;
+  --success:#10b981;--success-soft:#064e3b;
+  --danger:#ef4444;--danger-soft:#7f1d1d;
+  --warning:#f97316;--warning-soft:#7c2d12;
+  --gold:#fbbf24;--gold-soft:#78350f;
+  --shadow:0 1px 3px rgba(0,0,0,.3);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.5);
+  --overlay:rgba(0,0,0,.7);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--ff);background:var(--bg);color:var(--text);
+  overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
+  transition:background var(--ease),color var(--ease);}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;padding:0}
+input,textarea,select{font-family:inherit}
+.hidden{display:none!important}
+img{display:block;max-width:100%}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:10px}
+.ic{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.ic svg{width:20px;height:20px;stroke-width:1.8;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+.ic.sm svg{width:16px;height:16px}
+.ic.lg svg{width:24px;height:24px}
+
+/* LOADING with PROGRESS */
+#loading{position:fixed;inset:0;z-index:9999;background:var(--overlay);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(4px);}
+#loading.show{opacity:1;pointer-events:auto}
+.loading-box{background:var(--card);border-radius:var(--r-lg);padding:1.5rem 2rem;
+  min-width:220px;box-shadow:var(--shadow-lg);text-align:center;}
+.loading-box .lbl{font-size:.85rem;font-weight:600;color:var(--text);font-family:var(--mm);margin-bottom:.8rem;}
+.loading-bar{height:6px;background:var(--card-2);border-radius:100px;overflow:hidden;}
+.loading-bar .fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--primary-2));
+  border-radius:100px;transition:width .3s ease;box-shadow:0 0 12px var(--primary);}
+.loading-pct{font-size:.75rem;color:var(--primary);font-weight:700;margin-top:.5rem;font-family:var(--mm);}
+
+/* LANDING */
+#landing{position:fixed;inset:0;z-index:2000;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;transition:opacity .5s;}
+#landing.fade-out{opacity:0;pointer-events:none}
+#landing .logo-wrap{width:100px;height:100px;border-radius:24px;background:var(--card);
+  border:1px solid var(--border);padding:16px;box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  animation:logoIn .7s cubic-bezier(.34,1.56,.64,1);}
+#landing .logo-wrap img{width:100%;height:100%;object-fit:contain}
+@keyframes logoIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+#landing h1{font-family:var(--mm);font-size:1.5rem;font-weight:800;margin-top:1.4rem;color:var(--text)}
+#landing p{color:var(--text-2);font-family:var(--mm);margin-top:.4rem;font-size:.85rem}
+
+/* AUTH */
+#authScreen{position:fixed;inset:0;z-index:1500;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto;}
+.auth-card{width:100%;max-width:400px;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:2rem 1.5rem;box-shadow:var(--shadow-lg);
+  animation:cardIn .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes cardIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.auth-logo{display:flex;flex-direction:column;align-items:center;gap:.6rem;margin-bottom:1.5rem}
+.auth-logo .logo-img{width:64px;height:64px;border-radius:16px;padding:10px;background:var(--card);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  overflow:hidden;box-shadow:var(--shadow);}
+.auth-logo .logo-img img{width:100%;height:100%;object-fit:contain}
+.auth-logo h2{font-family:var(--mm);font-size:1.25rem;font-weight:800}
+.auth-logo p{color:var(--text-3);font-size:.78rem;font-family:var(--mm);text-align:center}
+.tabs{display:flex;background:var(--card-2);border-radius:var(--r);padding:3px;margin-bottom:1.2rem}
+.tabs button{flex:1;padding:.6rem;border-radius:8px;font-size:.83rem;font-weight:600;
+  color:var(--text-2);transition:all var(--ease);font-family:var(--mm)}
+.tabs button.active{background:var(--card);color:var(--text);box-shadow:var(--shadow)}
+.field{margin-bottom:.85rem}
+.field label{display:block;font-size:.73rem;font-weight:600;color:var(--text-2);
+  margin-bottom:.4rem;font-family:var(--mm)}
+.field input,.field textarea,.field select{width:100%;padding:.75rem .9rem;border-radius:var(--r);
+  border:1px solid var(--border);background:var(--card);color:var(--text);
+  font-size:.9rem;outline:none;transition:border var(--ease),box-shadow var(--ease);font-family:var(--mm);}
+.field input:focus,.field textarea:focus,.field select:focus{
+  border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.role-picker{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.9rem}
+.role-picker button{padding:.9rem .5rem;border-radius:var(--r);border:1.5px solid var(--border);
+  background:var(--card);font-weight:600;font-size:.83rem;transition:all var(--ease);
+  display:flex;flex-direction:column;align-items:center;gap:.35rem;color:var(--text-2);font-family:var(--mm);}
+.role-picker button.active{border-color:var(--primary);background:var(--primary-soft);color:var(--primary)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;
+  padding:.8rem 1.1rem;border-radius:var(--r);font-weight:600;font-size:.88rem;
+  transition:all var(--ease);border:1px solid transparent;font-family:var(--mm);white-space:nowrap;cursor:pointer;}
+.btn.primary{background:var(--primary);color:#fff}
+.btn.primary:hover{background:var(--primary-2)}
+.btn.primary:active{transform:scale(.98)}
+.btn.ghost{background:var(--card);color:var(--text);border-color:var(--border)}
+.btn.danger{background:var(--danger-soft);color:var(--danger);border-color:var(--danger)}
+.btn.success{background:var(--success);color:#fff}
+.btn.warning{background:var(--warning-soft);color:var(--warning);border-color:var(--warning)}
+.btn-block{width:100%}
+.btn.sm{padding:.5rem .8rem;font-size:.78rem}
+.btn:disabled{opacity:.5;pointer-events:none}
+.btn.loading{color:transparent!important;pointer-events:none;position:relative}
+.btn.loading::after{content:'';position:absolute;top:50%;left:50%;width:15px;height:15px;
+  margin:-7.5px 0 0 -7.5px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;
+  border-radius:50%;animation:spin .7s linear infinite;}
+.btn.ghost.loading::after,.btn.danger.loading::after{border-color:var(--border);border-top-color:var(--text)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.auth-msg{min-height:1rem;font-size:.78rem;text-align:center;margin-top:.7rem;
+  color:var(--danger);font-family:var(--mm)}
+
+/* APP SHELL */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg);
+  opacity:0;pointer-events:none;transition:opacity .3s;}
+#app.visible{opacity:1;pointer-events:auto}
+.app-header{flex-shrink:0;height:58px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 .9rem;background:var(--card);border-bottom:1px solid var(--border);z-index:10;}
+.brand{display:flex;align-items:center;gap:.6rem}
+.brand .logo{width:34px;height:34px;border-radius:9px;padding:5px;background:var(--bg);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  overflow:hidden;flex-shrink:0;}
+.brand .logo img{width:100%;height:100%;object-fit:contain}
+.brand-text{font-family:var(--mm);font-weight:800;font-size:.95rem;line-height:1.1}
+.brand-text small{display:block;font-size:.63rem;color:var(--text-3);font-weight:500;margin-top:1px}
+.actions{display:flex;gap:.15rem;align-items:center}
+.ibtn{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  color:var(--text-2);transition:all var(--ease);position:relative;}
+.ibtn:hover{background:var(--card-2);color:var(--text)}
+.ibtn:active{transform:scale(.92)}
+.ibtn svg{width:20px;height:20px;stroke-width:1.8;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+.badge{position:absolute;top:4px;right:4px;min-width:16px;height:16px;border-radius:8px;
+  background:var(--danger);color:#fff;font-size:9px;font-weight:700;display:none;
+  align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--card);}
+.badge.show{display:flex}
+.app-main{flex:1;overflow-y:auto;padding-bottom:calc(var(--tab-h) + env(safe-area-inset-bottom))}
+.view{display:none;animation:viewIn .22s ease}
+.view.active{display:block}
+@keyframes viewIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* TAB BAR */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;height:var(--tab-h);background:var(--card);
+  border-top:1px solid var(--border);display:flex;align-items:stretch;
+  padding-bottom:env(safe-area-inset-bottom);z-index:100;}
+.tab-bar button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;font-size:.66rem;font-weight:500;color:var(--text-3);transition:color var(--ease);
+  position:relative;font-family:var(--mm);}
+.tab-bar button svg{width:22px;height:22px;stroke-width:1.7}
+.tab-bar button.active{color:var(--primary)}
+.tab-bar button.active svg{stroke-width:2.2}
+
+/* COMMON */
+.container{padding:1rem}
+.sec{margin-bottom:1.2rem}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;gap:.5rem}
+.sec-head h2{font-family:var(--mm);font-size:.9rem;font-weight:700;display:flex;align-items:center;gap:.4rem;color:var(--text)}
+.sec-head h2 .ic{color:var(--primary)}
+.sec-head .cnt{font-size:.72rem;color:var(--text-3);font-family:var(--mm)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem;margin-bottom:.7rem;}
+.card.pad-0{padding:0;overflow:hidden}
+.empty{text-align:center;padding:2rem 1rem;color:var(--text-3);font-family:var(--mm);font-size:.83rem}
+.empty .ic{margin:0 auto .6rem;color:var(--text-3);opacity:.5}
+.empty .ic svg{width:38px;height:38px;stroke-width:1.3}
+.divider{height:1px;background:var(--border);margin:.7rem 0}
+.pill{display:inline-flex;align-items:center;gap:.25rem;padding:.22rem .6rem;border-radius:100px;
+  font-size:.66rem;font-weight:700;font-family:var(--mm)}
+.pill.pending{background:var(--warning-soft);color:var(--warning)}
+.pill.accepted{background:var(--primary-soft);color:var(--primary)}
+.pill.arriving{background:var(--primary-soft);color:var(--primary)}
+.pill.in_progress{background:var(--warning-soft);color:var(--warning)}
+.pill.completed{background:var(--success-soft);color:var(--success)}
+.pill.cancelled{background:var(--danger-soft);color:var(--danger)}
+.pill.approved{background:var(--success-soft);color:var(--success)}
+.pill.rejected{background:var(--danger-soft);color:var(--danger)}
+
+/* MAP */
+.map-wrap{position:relative;margin-bottom:.7rem}
+#mapContainer{width:100%;height:280px;border-radius:var(--r-lg);overflow:hidden;
+  border:1px solid var(--border);position:relative;z-index:1;}
+.leaflet-container{background:var(--card-2) !important;font-family:var(--ff) !important}
+.map-btn{position:absolute;bottom:.9rem;right:.9rem;z-index:400;width:42px;height:42px;
+  border-radius:10px;background:var(--card);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);
+  cursor:pointer;color:var(--primary);}
+.map-btn:active{transform:scale(.92)}
+
+/* ROUTE INPUTS with SEARCH */
+.route-section{display:flex;flex-direction:column;gap:.5rem;position:relative}
+.route-input-wrap{position:relative}
+.route-input{display:flex;align-items:center;gap:.7rem;padding:.75rem .9rem;
+  background:var(--card-2);border-radius:var(--r);border:1px solid var(--border);
+  transition:border var(--ease),box-shadow var(--ease);}
+.route-input.active{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft);background:var(--card)}
+.route-input .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.route-input .dot.green{background:var(--success);box-shadow:0 0 0 3px var(--success-soft)}
+.route-input .dot.red{background:var(--danger);box-shadow:0 0 0 3px var(--danger-soft)}
+.route-input input{flex:1;background:none;border:none;outline:none;color:var(--text);
+  font-size:.88rem;font-family:var(--mm);min-width:0}
+.route-input input::placeholder{color:var(--text-3)}
+.route-input .clear-btn{color:var(--text-3);cursor:pointer;padding:3px;display:none}
+.route-input .clear-btn.show{display:flex}
+.route-input .clear-btn:hover{color:var(--danger)}
+.suggestions{position:absolute;top:100%;left:0;right:0;margin-top:.3rem;background:var(--card);
+  border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-lg);
+  max-height:240px;overflow-y:auto;z-index:500;}
+.suggestions:empty{display:none}
+.suggestion{padding:.7rem .9rem;cursor:pointer;transition:background var(--ease);
+  display:flex;gap:.6rem;align-items:flex-start;border-bottom:1px solid var(--border);}
+.suggestion:last-child{border-bottom:none}
+.suggestion:hover,.suggestion:active{background:var(--card-2)}
+.suggestion .ic{color:var(--text-3);margin-top:2px;flex-shrink:0}
+.suggestion .ic svg{width:16px;height:16px}
+.suggestion .text{flex:1;min-width:0}
+.suggestion .text .main{font-size:.83rem;font-weight:600;color:var(--text);font-family:var(--mm);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.suggestion .text .sub{font-size:.72rem;color:var(--text-3);margin-top:.1rem;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mm);}
+.suggestion.loading{justify-content:center;color:var(--text-3);font-family:var(--mm);font-size:.8rem;}
+
+/* FARE */
+.fare-box{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1rem;
+  background:var(--primary-soft);border-radius:var(--r);border:1px solid var(--primary);margin-top:.6rem;}
+.fare-box .lbl{font-size:.72rem;color:var(--primary);font-family:var(--mm);font-weight:600}
+.fare-box .amt{font-size:1.3rem;font-weight:800;color:var(--primary);font-family:var(--mm);
+  display:flex;align-items:baseline;gap:.25rem;}
+.fare-box .amt small{font-size:.7rem;font-weight:600}
+
+/* DRIVER CARD */
+.driver-card{display:flex;gap:.75rem;align-items:center;padding:.85rem;background:var(--card);
+  border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:.5rem;transition:all var(--ease);}
+.driver-card .av{width:48px;height:48px;border-radius:12px;flex-shrink:0;background:var(--card-2);
+  overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--text-2);
+  font-weight:700;font-size:1.1rem;border:1px solid var(--border);}
+.driver-card .av img{width:100%;height:100%;object-fit:cover}
+.driver-card .info{flex:1;min-width:0}
+.driver-card .name{font-weight:700;font-size:.88rem;font-family:var(--mm);
+  display:flex;align-items:center;gap:.3rem;color:var(--text)}
+.driver-card .name .v{color:var(--success);display:inline-flex}
+.driver-card .name .v svg{width:13px;height:13px}
+.driver-card .meta{font-size:.72rem;color:var(--text-3);margin-top:.15rem;
+  font-family:var(--mm);display:flex;align-items:center;gap:.3rem;flex-wrap:wrap}
+.driver-card .km{font-size:.7rem;font-weight:700;color:var(--primary);
+  background:var(--primary-soft);padding:.18rem .5rem;border-radius:5px;font-family:var(--mm)}
+.driver-card .act{display:flex;gap:.35rem;flex-shrink:0;align-items:center}
+.driver-card .act button,.driver-card .act a{width:34px;height:34px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;transition:all var(--ease);
+  border:none;color:inherit;text-decoration:none;}
+.driver-card .act .call{background:var(--success-soft);color:var(--success)}
+.driver-card .act .msg{background:var(--primary-soft);color:var(--primary)}
+.driver-card .act button:active{transform:scale(.9)}
+
+/* STATUS TOGGLE */
+.status-toggle{display:flex;align-items:center;justify-content:space-between;padding:1rem;
+  border-radius:var(--r-lg);margin-bottom:.9rem;background:var(--danger-soft);
+  border:1.5px solid var(--danger);transition:all var(--ease);}
+.status-toggle.online{background:var(--success-soft);border-color:var(--success);}
+.status-toggle.pending{background:var(--warning-soft);border-color:var(--warning);}
+.status-toggle .si{display:flex;align-items:center;gap:.75rem}
+.status-toggle .dot{width:10px;height:10px;border-radius:50%;background:var(--danger);
+  position:relative;flex-shrink:0;color:var(--danger);}
+.status-toggle .dot::after{content:'';position:absolute;inset:-4px;border-radius:50%;
+  background:currentColor;opacity:.2;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.2}50%{transform:scale(1.7);opacity:.05}}
+.status-toggle.online .dot{background:var(--success);color:var(--success)}
+.status-toggle.pending .dot{background:var(--warning);color:var(--warning)}
+.status-toggle .st{font-family:var(--mm);font-weight:700;font-size:.95rem}
+.status-toggle .ss{font-size:.72rem;color:var(--text-2);margin-top:.1rem;font-family:var(--mm)}
+.sw{position:relative;width:48px;height:28px;border-radius:14px;background:var(--card-3);
+  transition:background var(--ease);cursor:pointer;flex-shrink:0;border:none;}
+.sw::before{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;
+  border-radius:50%;background:#fff;transition:transform var(--ease);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.sw.on{background:var(--success)}
+.sw.on::before{transform:translateX(20px)}
+
+/* ACTIVE RIDE */
+.active-ride{background:var(--card);border:1.5px solid var(--primary);
+  border-radius:var(--r-lg);padding:1rem;margin-bottom:.8rem;}
+.active-ride .dr{display:flex;align-items:center;gap:.75rem;padding-bottom:.8rem;border-bottom:1px solid var(--border);}
+.active-ride .dr .av{width:48px;height:48px;border-radius:12px;background:var(--card-2);
+  overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--text-2);
+  font-weight:700;font-size:1.1rem;flex-shrink:0;border:1px solid var(--border);}
+.active-ride .dr .av img{width:100%;height:100%;object-fit:cover}
+.active-ride .dr .info{flex:1;min-width:0}
+.active-ride .dr .name{font-weight:700;font-size:.9rem;font-family:var(--mm)}
+.active-ride .dr .sub{font-size:.72rem;color:var(--text-3);margin-top:.1rem;font-family:var(--mm)}
+.active-ride .dr .ic-btn{width:36px;height:36px;border-radius:9px;background:var(--primary-soft);
+  color:var(--primary);display:flex;align-items:center;justify-content:center;}
+.progress-steps{display:flex;justify-content:space-between;margin:1rem 0;position:relative;padding:0 4%;}
+.progress-steps::before{content:'';position:absolute;top:11px;left:14%;right:14%;
+  height:2px;background:var(--border);z-index:0;}
+.progress-steps .s{flex:1;text-align:center;position:relative;z-index:1}
+.progress-steps .s .c{width:24px;height:24px;border-radius:50%;background:var(--card-3);
+  margin:0 auto .3rem;display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:700;color:var(--text-3);border:2px solid var(--card);transition:all var(--ease);}
+.progress-steps .s.done .c{background:var(--success);color:#fff}
+.progress-steps .s.cur .c{background:var(--primary);color:#fff;box-shadow:0 0 0 4px var(--primary-soft);}
+.progress-steps .s .l{font-size:.66rem;color:var(--text-3);font-family:var(--mm)}
+.progress-steps .s.cur .l,.progress-steps .s.done .l{color:var(--text);font-weight:600}
+.route-sum{margin:.85rem 0;padding:.75rem;background:var(--card-2);border-radius:var(--r);}
+.route-sum .ln{display:flex;gap:.5rem;align-items:flex-start;margin-bottom:.5rem}
+.route-sum .ln:last-child{margin-bottom:0}
+.route-sum .d{width:9px;height:9px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.route-sum .d.g{background:var(--success)}
+.route-sum .d.r{background:var(--danger)}
+.route-sum .ln .t{font-size:.8rem;color:var(--text);line-height:1.35;font-family:var(--mm);word-break:break-word;flex:1}
+.otp-box{background:var(--primary-soft);border:1.5px dashed var(--primary);border-radius:var(--r);
+  padding:.85rem;text-align:center;margin-bottom:.7rem;}
+.otp-box .lbl{font-size:.7rem;color:var(--primary);font-weight:600;font-family:var(--mm);margin-bottom:.3rem}
+.otp-box .code{font-size:1.7rem;font-weight:800;letter-spacing:.35rem;color:var(--primary);
+  font-family:'Inter',monospace;line-height:1}
+
+/* RIDE CARD */
+.ride-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:.85rem;margin-bottom:.55rem;cursor:pointer;transition:all var(--ease);}
+.ride-card:active{border-color:var(--primary)}
+.ride-card .h{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.55rem;}
+.ride-card .h .f{font-weight:800;font-size:1rem;color:var(--primary);font-family:var(--mm);
+  white-space:nowrap;display:flex;align-items:baseline;gap:.2rem;}
+.ride-card .h .f small{font-size:.68rem;font-weight:600}
+.ride-card .ri{display:flex;gap:.5rem;align-items:flex-start;margin-bottom:.35rem}
+.ride-card .ri:last-child{margin-bottom:0}
+.ride-card .ri .d{width:9px;height:9px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.ride-card .ri .d.g{background:var(--success)}
+.ride-card .ri .d.r{background:var(--danger)}
+.ride-card .ri .t{font-size:.8rem;color:var(--text);line-height:1.3;font-family:var(--mm);
+  flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ride-card .m{display:flex;gap:.75rem;font-size:.7rem;color:var(--text-3);
+  padding-top:.6rem;border-top:1px solid var(--border);font-family:var(--mm);margin-top:.6rem}
+.ride-card .m span{display:flex;align-items:center;gap:.25rem}
+.ride-card .m svg{width:12px;height:12px;stroke-width:2}
+
+/* COIN CARD */
+.coin-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-2) 100%);
+  border-radius:var(--r-lg);padding:1.2rem;margin-bottom:1rem;color:#fff;
+  position:relative;overflow:hidden;}
+.coin-hero::before{content:'';position:absolute;top:-30%;right:-15%;width:160px;height:160px;
+  border-radius:50%;background:rgba(255,255,255,.1);}
+.coin-hero .lbl{font-size:.7rem;font-weight:600;opacity:.9;font-family:var(--mm);
+  text-transform:uppercase;letter-spacing:.06em;position:relative}
+.coin-hero .num{font-size:2.2rem;font-weight:800;line-height:1.1;margin-top:.25rem;position:relative}
+.coin-hero .sub{font-size:.7rem;margin-top:.4rem;opacity:.9;font-family:var(--mm);position:relative}
+
+/* PACKAGE GRID */
+.pkg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem}
+.pkg-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r-lg);
+  overflow:hidden;cursor:pointer;transition:all var(--ease);position:relative;}
+.pkg-card:active{transform:scale(.97)}
+.pkg-card.rec{border-color:var(--primary)}
+.pkg-card .badge-top{position:absolute;top:.5rem;right:.5rem;padding:.15rem .5rem;
+  border-radius:5px;font-size:.55rem;font-weight:800;background:var(--primary);
+  color:#fff;letter-spacing:.04em;z-index:2}
+.pkg-card .img{width:100%;height:100px;background:var(--card-2);display:flex;
+  align-items:center;justify-content:center;color:var(--primary);overflow:hidden;position:relative;}
+.pkg-card .img img{width:100%;height:100%;object-fit:cover}
+.pkg-card .img svg{width:40px;height:40px;stroke-width:1.5}
+.pkg-card .body{padding:.7rem .8rem}
+.pkg-card .name{font-weight:700;font-size:.8rem;font-family:var(--mm);color:var(--text)}
+.pkg-card .amount{font-weight:800;font-size:1.05rem;color:var(--primary);margin:.15rem 0;font-family:var(--mm)}
+.pkg-card .price{font-size:.7rem;color:var(--text-3);font-family:var(--mm)}
+
+/* PROFILE */
+.profile-bg{width:100%;height:140px;background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  position:relative;overflow:hidden;}
+.profile-bg img{width:100%;height:100%;object-fit:cover}
+.profile-hero{padding:0 1rem 1rem;text-align:center;background:var(--card);border-bottom:1px solid var(--border);position:relative;}
+.profile-av{width:88px;height:88px;border-radius:24px;margin:-44px auto .7rem;background:var(--primary-soft);
+  display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;
+  color:var(--primary);border:4px solid var(--card);box-shadow:var(--shadow);overflow:hidden;position:relative;z-index:2;}
+.profile-av img{width:100%;height:100%;object-fit:cover}
+.profile-name{font-size:1.15rem;font-weight:800;font-family:var(--mm);display:flex;
+  align-items:center;justify-content:center;gap:.35rem;color:var(--text)}
+.profile-name .v{color:var(--success);display:inline-flex}
+.profile-name .v svg{width:16px;height:16px}
+.profile-phone{color:var(--text-3);font-size:.8rem;margin-top:.2rem;font-family:monospace}
+.profile-stats{display:flex;justify-content:center;gap:2rem;margin-top:1rem}
+.stat{text-align:center}
+.stat .n{font-size:1.2rem;font-weight:800;color:var(--text);font-family:var(--mm)}
+.stat .l{font-size:.66rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;
+  margin-top:.1rem;font-family:var(--mm);font-weight:600}
+.menu-item{display:flex;align-items:center;gap:.85rem;padding:.95rem 1rem;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:background var(--ease);color:var(--text);}
+.menu-item:last-child{border-bottom:none}
+.menu-item:active{background:var(--card-2)}
+.menu-item .mi{width:36px;height:36px;border-radius:9px;background:var(--card-2);
+  display:flex;align-items:center;justify-content:center;color:var(--text-2);flex-shrink:0;}
+.menu-item .mi svg{width:18px;height:18px}
+.menu-item .mb{flex:1;min-width:0}
+.menu-item .mt{font-weight:600;font-size:.87rem;font-family:var(--mm);color:var(--text)}
+.menu-item .ms{font-size:.7rem;color:var(--text-3);margin-top:.1rem;font-family:var(--mm)}
+.menu-item .chev{color:var(--text-3)}
+.menu-item .chev svg{width:18px;height:18px}
+
+/* MODAL */
+.modal{position:fixed;inset:0;z-index:1000;background:var(--overlay);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;
+  pointer-events:none;transition:opacity .2s;}
+.modal.open{opacity:1;pointer-events:auto}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r-xl);
+  padding:1.4rem;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;
+  box-shadow:var(--shadow-lg);transform:scale(.96) translateY(10px);
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
+.modal.open .modal-box{transform:none}
+.modal-box.sheet{align-self:flex-end;border-radius:20px 20px 0 0;max-width:640px;
+  transform:translateY(100%);padding:0 1rem calc(1rem + env(safe-area-inset-bottom));}
+.modal.open .modal-box.sheet{transform:translateY(0)}
+.modal-box.sheet::before{content:'';display:block;width:36px;height:4px;border-radius:100px;
+  background:var(--border-2);margin:.7rem auto .3rem;}
+.sheet-title{font-size:.7rem;font-weight:700;color:var(--text-3);text-transform:uppercase;
+  letter-spacing:.08em;text-align:center;margin-bottom:.6rem;font-family:var(--mm)}
+.sheet-action{display:flex;align-items:center;gap:.85rem;padding:.8rem .9rem;
+  border-radius:var(--r);font-size:.87rem;font-weight:600;color:var(--text);
+  cursor:pointer;transition:background var(--ease);font-family:var(--mm);}
+.sheet-action:active{background:var(--card-2)}
+.sheet-action svg{width:20px;height:20px;stroke-width:1.8}
+.sheet-action.danger{color:var(--danger)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.modal-head h3{font-size:1rem;font-weight:800;font-family:var(--mm);color:var(--text)}
+.modal-head .x{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;color:var(--text-2);transition:background var(--ease);cursor:pointer;}
+.modal-head .x:hover{background:var(--card-2)}
+.modal-head .x svg{width:18px;height:18px}
+
+/* CHAT */
+.chat-panel{position:fixed;inset:0;z-index:900;background:var(--bg);display:flex;
+  flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);}
+.chat-panel.open{transform:translateX(0)}
+.chat-head{display:flex;align-items:center;gap:.6rem;padding:.65rem .8rem;background:var(--card);
+  border-bottom:1px solid var(--border);padding-top:calc(.65rem + env(safe-area-inset-top));
+  min-height:58px;flex-shrink:0;}
+.chat-head .back{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;
+  justify-content:center;color:var(--text-2);}
+.chat-head .back:active{background:var(--card-2)}
+.chat-head .av{width:36px;height:36px;border-radius:10px;background:var(--primary-soft);
+  display:flex;align-items:center;justify-content:center;color:var(--primary);
+  font-weight:700;flex-shrink:0;overflow:hidden;}
+.chat-head .av img{width:100%;height:100%;object-fit:cover}
+.chat-head .info{flex:1;min-width:0}
+.chat-head .info .n{font-weight:700;font-size:.87rem;font-family:var(--mm);color:var(--text);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-head .info .s{font-size:.68rem;color:var(--text-3);font-family:var(--mm)}
+.chat-msgs{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.5rem;background:var(--bg);}
+.msg{max-width:82%;display:flex;gap:.5rem;animation:msgIn .2s ease;}
+@keyframes msgIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.msg.mine{align-self:flex-end;flex-direction:row-reverse}
+.msg.theirs{align-self:flex-start}
+.msg .sender-av{width:32px;height:32px;border-radius:9px;background:var(--card-2);
+  overflow:hidden;display:flex;align-items:center;justify-content:center;
+  color:var(--text-2);font-weight:700;font-size:.8rem;flex-shrink:0;border:1px solid var(--border);}
+.msg .sender-av img{width:100%;height:100%;object-fit:cover}
+.msg .content-wrap{display:flex;flex-direction:column;gap:.15rem;min-width:0;max-width:100%;}
+.msg.mine .content-wrap{align-items:flex-end}
+.msg.theirs .content-wrap{align-items:flex-start}
+.msg .sender-name{font-size:.68rem;color:var(--text-3);font-family:var(--mm);font-weight:600;padding:0 .3rem;}
+.msg .bub{padding:.55rem .8rem;border-radius:14px;font-size:.86rem;line-height:1.4;
+  word-break:break-word;font-family:var(--mm);white-space:pre-wrap;max-width:100%;}
+.msg.mine .bub{background:var(--primary);color:#fff;border-bottom-right-radius:5px}
+.msg.theirs .bub{background:var(--card);color:var(--text);border:1px solid var(--border);border-bottom-left-radius:5px;}
+.msg .meta{font-size:.6rem;color:var(--text-3);padding:0 .3rem}
+.msg.pending .bub{opacity:.7}
+.msg .sending-bar{height:3px;width:120px;background:var(--card-3);border-radius:100px;
+  overflow:hidden;margin-top:.3rem;}
+.msg .sending-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--primary-2));
+  border-radius:100px;animation:sendProg 1.5s ease-in-out infinite;}
+@keyframes sendProg{0%{width:10%}50%{width:80%}100%{width:95%}}
+.chat-input{display:flex;gap:.5rem;padding:.65rem .8rem;
+  padding-bottom:calc(.65rem + env(safe-area-inset-bottom));background:var(--card);
+  border-top:1px solid var(--border);flex-shrink:0;}
+.chat-input input{flex:1;padding:.65rem .9rem;border-radius:10px;border:1px solid var(--border);
+  background:var(--card-2);color:var(--text);font-size:.87rem;outline:none;font-family:var(--mm);}
+.chat-input input:focus{border-color:var(--primary);background:var(--card)}
+.chat-input .send{width:40px;height:40px;border-radius:10px;background:var(--primary);
+  color:#fff;display:flex;align-items:center;justify-content:center;transition:all var(--ease);flex-shrink:0;}
+.chat-input .send:active{transform:scale(.92)}
+.chat-input .send:disabled{opacity:.4;pointer-events:none}
+
+/* ADMIN */
+.admin-tabs{display:flex;gap:.25rem;overflow-x:auto;padding:.6rem 1rem;background:var(--card);
+  border-bottom:1px solid var(--border);scrollbar-width:none;position:sticky;top:0;z-index:20;}
+.admin-tabs::-webkit-scrollbar{display:none}
+.admin-tabs button{flex-shrink:0;padding:.45rem .85rem;border-radius:100px;font-size:.75rem;
+  font-weight:600;color:var(--text-2);background:var(--card-2);transition:all var(--ease);font-family:var(--mm);position:relative;}
+.admin-tabs button.active{background:var(--primary);color:#fff}
+.admin-tabs button .tab-badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;
+  border-radius:8px;background:var(--danger);color:#fff;font-size:9px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--card);}
+.admin-item{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:.85rem;margin-bottom:.55rem;font-family:var(--mm);}
+.admin-item.pending{border-color:var(--warning);background:var(--warning-soft);}
+.admin-item .row{display:flex;justify-content:space-between;align-items:flex-start;gap:.6rem;}
+.admin-item .title{font-weight:700;font-size:.85rem;color:var(--text)}
+.admin-item .sub{font-size:.7rem;color:var(--text-3);margin-top:.15rem;font-family:var(--mm);line-height:1.4}
+.admin-item .sub b{color:var(--text-2)}
+.admin-item .actions{display:flex;gap:.25rem;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.admin-item .actions button{padding:.3rem .6rem;border-radius:7px;font-size:.68rem;
+  font-weight:700;font-family:var(--mm);transition:all var(--ease);}
+.admin-item .actions .approve{background:var(--success);color:#fff}
+.admin-item .actions .reject{background:var(--danger-soft);color:var(--danger)}
+.admin-item .actions .edit{background:var(--primary-soft);color:var(--primary)}
+.admin-item .actions .coins{background:var(--warning-soft);color:var(--warning)}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;margin-bottom:1rem}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:.85rem;}
+.stat-card .iw{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;
+  justify-content:center;margin-bottom:.5rem;}
+.stat-card .iw svg{width:18px;height:18px}
+.stat-card .val{font-size:1.3rem;font-weight:800;font-family:var(--mm);color:var(--text)}
+.stat-card .lbl{font-size:.68rem;color:var(--text-3);margin-top:.1rem;font-family:var(--mm);font-weight:600}
+
+/* UPLOAD */
+.upload-zone{border:2px dashed var(--border-2);border-radius:var(--r);padding:1.2rem;
+  text-align:center;cursor:pointer;transition:all var(--ease);background:var(--card-2);}
+.upload-zone:hover{border-color:var(--primary);background:var(--primary-soft)}
+.upload-zone .uz-icon{width:40px;height:40px;margin:0 auto .5rem;border-radius:10px;
+  background:var(--card);display:flex;align-items:center;justify-content:center;
+  color:var(--text-2);border:1px solid var(--border);}
+.upload-zone p{font-size:.8rem;color:var(--text-2);font-family:var(--mm);font-weight:500}
+.upload-zone small{font-size:.68rem;color:var(--text-3);font-family:var(--mm)}
+.upload-preview{position:relative;border-radius:var(--r);overflow:hidden;
+  border:1px solid var(--border);background:var(--card-2);}
+.upload-preview img{width:100%;max-height:180px;object-fit:cover;display:block}
+.upload-preview .rm{position:absolute;top:.5rem;right:.5rem;width:30px;height:30px;
+  border-radius:50%;background:rgba(220,38,38,.95);color:#fff;display:flex;
+  align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.upload-progress{padding:1rem;background:var(--card-2);border-radius:var(--r);text-align:center}
+.upload-progress .bar{height:6px;background:var(--card-3);border-radius:100px;
+  overflow:hidden;margin:.7rem 0 .4rem}
+.upload-progress .fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-2));
+  border-radius:100px;transition:width .3s ease;box-shadow:0 0 12px var(--primary)}
+.upload-progress .pct{font-size:.75rem;color:var(--primary);font-weight:700;font-family:var(--mm)}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(var(--tab-h) + 1rem + env(safe-area-inset-bottom));left:50%;
+  transform:translateX(-50%) translateY(60px);padding:.7rem 1.1rem;border-radius:100px;
+  background:var(--card);color:var(--text);font-size:.83rem;font-weight:600;
+  border:1px solid var(--border);box-shadow:var(--shadow-lg);z-index:3000;opacity:0;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;max-width:90vw;
+  font-family:var(--mm);display:flex;align-items:center;gap:.5rem;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast .ic svg{width:16px;height:16px}
+.toast.success{border-color:var(--success);color:var(--success)}
+.toast.error{border-color:var(--danger);color:var(--danger)}
+.toast.info{border-color:var(--primary);color:var(--primary)}
+
+/* CONFIRM */
+#confirmDialog .modal-box{max-width:320px;text-align:center;padding:1.6rem 1.3rem 1.2rem}
+#confirmDialog .iw{width:56px;height:56px;margin:0 auto .8rem;border-radius:50%;
+  background:var(--primary-soft);display:flex;align-items:center;justify-content:center;color:var(--primary);}
+#confirmDialog .iw svg{width:26px;height:26px;stroke-width:2}
+#confirmDialog h3{font-size:1rem;font-weight:800;margin-bottom:.35rem;font-family:var(--mm);color:var(--text)}
+#confirmDialog p{color:var(--text-2);font-size:.82rem;margin-bottom:1.2rem;line-height:1.5;font-family:var(--mm)}
+#confirmDialog .actions{display:flex;gap:.5rem}
+#confirmDialog .actions button{flex:1;padding:.75rem;border-radius:10px;font-weight:700;
+  font-size:.85rem;font-family:var(--mm)}
+
+/* PENDING STATUS BANNER */
+.pending-banner{background:var(--warning-soft);border:1.5px solid var(--warning);
+  border-radius:var(--r-lg);padding:1rem;margin-bottom:.9rem;display:flex;gap:.7rem;align-items:flex-start;}
+.pending-banner .ic{color:var(--warning);margin-top:2px}
+.pending-banner .ttl{font-weight:700;font-family:var(--mm);color:var(--warning);font-size:.88rem;margin-bottom:.2rem}
+.pending-banner .txt{font-size:.75rem;color:var(--text-2);font-family:var(--mm);line-height:1.4}
+
+/* PAYMENT METHOD SELECT */
+.pay-methods{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.6rem}
+.pay-method{padding:1rem;border-radius:var(--r);border:1.5px solid var(--border);
+  background:var(--card);cursor:pointer;transition:all var(--ease);text-align:center;}
+.pay-method.active{border-color:var(--primary);background:var(--primary-soft);}
+.pay-method .icon{width:40px;height:40px;margin:0 auto .5rem;border-radius:11px;
+  background:var(--card-2);display:flex;align-items:center;justify-content:center;color:var(--text-2);}
+.pay-method.active .icon{background:var(--primary);color:#fff}
+.pay-method .name{font-weight:700;font-family:var(--mm);font-size:.85rem;color:var(--text)}
+.pay-method .sub{font-size:.68rem;color:var(--text-3);font-family:var(--mm);margin-top:.15rem}
+
+@media (min-width:720px){
+  .app-header,.tab-bar{max-width:600px;left:50%;transform:translateX(-50%);right:auto;width:100%;}
+  .app-main{max-width:600px;margin:0 auto;width:100%}
+}
+</style>
+</head>
+<body class="light">
+
+<div id="loading">
+  <div class="loading-box">
+    <div class="lbl" id="loadingLabel">ခဏစောင့်ပါ...</div>
+    <div class="loading-bar"><div class="fill" id="loadingFill"></div></div>
+    <div class="loading-pct" id="loadingPct">0%</div>
+  </div>
+</div>
+
+<!-- LANDING -->
+<div id="landing">
+  <div class="logo-wrap"><img src="https://lh3.googleusercontent.com/d/1gQy28YrpBXUeqSctF50DXsd0yvVpxNXb=w400" alt="Hinthada Taxi" /></div>
+  <h1>Hinthada Taxi</h1>
+  <p>ဟင်္သာတမြို့ရဲ့ ယုံကြည်စိတ်ချရတဲ့ Taxi ဝန်ဆောင်မှု</p>
+</div>
+
+<!-- AUTH -->
+<div id="authScreen" class="hidden">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-img"><img src="https://lh3.googleusercontent.com/d/1gQy28YrpBXUeqSctF50DXsd0yvVpxNXb=w400" alt="Logo" /></div>
+      <h2>Hinthada Taxi</h2>
+      <p>ဟင်္သာတမြို့ရဲ့ Taxi ဝန်ဆောင်မှု</p>
+    </div>
+    <div class="tabs">
+      <button class="active" data-auth="login">Login</button>
+      <button data-auth="register">Register</button>
+    </div>
+    <div id="authLogin">
+      <div class="field"><label>ဖုန်းနံပါတ်</label>
+        <input type="tel" id="loginPhone" inputmode="numeric" placeholder="09xxxxxxxxx" autocomplete="username" /></div>
+      <div class="field"><label>စကားဝှက်</label>
+        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" /></div>
+      <button class="btn primary btn-block" id="loginBtn">ဝင်ရောက်မည်</button>
+      <div class="auth-msg" id="loginMsg"></div>
+    </div>
+    <div id="authRegister" class="hidden">
+      <div class="field"><label>ဖုန်းနံပါတ်</label>
+        <input type="tel" id="regPhone" inputmode="numeric" placeholder="09xxxxxxxxx" autocomplete="off" /></div>
+      <div class="field"><label>နာမည်</label>
+        <input type="text" id="regName" placeholder="သင့်နာမည်" autocomplete="off" /></div>
+      <div class="field"><label>စကားဝှက် (၆ လုံး+)</label>
+        <input type="password" id="regPass" placeholder="••••••••" autocomplete="new-password" /></div>
+      <div class="field">
+        <label>သင်က ဘယ်သူလဲ?</label>
+        <div class="role-picker" id="rolePicker">
+          <button type="button" data-role="rider" class="active">
+            <span class="ic lg"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2"/></svg></span>
+            <span>ခရီးသည်</span>
+          </button>
+          <button type="button" data-role="driver">
+            <span class="ic lg"><svg viewBox="0 0 24 24"><path d="M5 11l1.5-4.5A1 1 0 0 1 7.5 6h9a1 1 0 0 1 1 .5L19 11"/><rect x="3" y="11" width="18" height="8" rx="2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></span>
+            <span>Taxi သမား</span>
+          </button>
+        </div>
+      </div>
+      <button class="btn primary btn-block" id="regBtn">Account ဖွင့်မည်</button>
+      <div class="auth-msg" id="regMsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo"><img src="https://lh3.googleusercontent.com/d/1gQy28YrpBXUeqSctF50DXsd0yvVpxNXb=w400" alt="Logo" /></div>
+      <div class="brand-text">Hinthada Taxi<small id="headerSub">ခရီးသည်</small></div>
+    </div>
+    <div class="actions">
+      <button class="ibtn" id="themeBtn"><svg viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+      <button class="ibtn" id="notifBtn"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="badge" id="notifBadge"></span></button>
+      <button class="ibtn" id="menuBtn"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    </div>
+  </header>
+
+  <main class="app-main" id="appMain">
+    <!-- HOME (RIDER) -->
+    <section class="view" id="viewHome">
+      <div class="container">
+        <div id="activeRideContainer"></div>
+        <div class="sec">
+          <div class="sec-head">
+            <h2><span class="ic"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>Taxi တောင်းမည်</h2>
+          </div>
+          <div class="card" style="padding:.85rem">
+            <div class="map-wrap">
+              <div id="mapContainer"></div>
+              <button class="map-btn" id="locateBtn"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+            </div>
+            <div style="display:flex;gap:.35rem;margin-bottom:.5rem">
+              <button type="button" id="modePickup" class="btn success" style="flex:1;padding:.5rem;font-size:.78rem;border-radius:8px">📍 မှ နေရာ</button>
+              <button type="button" id="modeDropoff" class="btn ghost" style="flex:1;padding:.5rem;font-size:.78rem;border-radius:8px">🎯 သို့ နေရာ</button>
+            </div>
+            <div class="route-section">
+              <div class="route-input-wrap">
+                <div class="route-input" id="pickupWrap">
+                  <span class="dot green"></span>
+                  <input id="pickupInput" placeholder="မှ နေရာ — ရိုက်ရှာပါ သို့ Map နှိပ်ပါ" autocomplete="off" />
+                  <span class="clear-btn" id="pickupClear"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+                </div>
+                <div class="suggestions" id="pickupSuggestions"></div>
+              </div>
+              <div class="route-input-wrap">
+                <div class="route-input" id="dropoffWrap">
+                  <span class="dot red"></span>
+                  <input id="dropoffInput" placeholder="သို့ နေရာ — ရိုက်ရှာပါ သို့ Map နှိပ်ပါ" autocomplete="off" />
+                  <span class="clear-btn" id="dropoffClear"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+                </div>
+                <div class="suggestions" id="dropoffSuggestions"></div>
+              </div>
+            </div>
+            <div id="fareEstimate" class="hidden" style="margin-top:.6rem">
+              <div class="fare-box">
+                <div>
+                  <div class="lbl">ခန့်မှန်း ခရီးခ</div>
+                  <div style="font-size:.7rem;color:var(--text-3);margin-top:.1rem" id="fareDistance">0 km</div>
+                </div>
+                <div class="amt"><span id="fareAmount">0</span><small>ကျပ်</small></div>
+              </div>
+              <button class="btn primary btn-block" id="requestRideBtn" style="margin-top:.7rem">
+                <span class="ic sm"><svg viewBox="0 0 24 24"><path d="M5 11l1.5-4.5A1 1 0 0 1 7.5 6h9a1 1 0 0 1 1 .5L19 11"/><rect x="3" y="11" width="18" height="8" rx="2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></span>
+                Taxi ခေါ်မည်
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="sec">
+          <div class="sec-head">
+            <h2><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>အနီးနား Taxi များ</h2>
+            <span class="cnt" id="nearbyCount">0 စီး</span>
+          </div>
+          <div id="availableDrivers"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DRIVER HOME -->
+    <section class="view hidden" id="viewDriver">
+      <div class="container">
+        <div id="driverPendingBanner" class="hidden"></div>
+        <div class="status-toggle" id="statusToggle">
+          <div class="si">
+            <div class="dot"></div>
+            <div>
+              <div class="st" id="statusText">Offline</div>
+              <div class="ss" id="statusSub">Online လုပ်ပြီး ခရီးသည် တောင်းဆိုမှုများ ကြည့်ပါ</div>
+            </div>
+          </div>
+          <button class="sw" id="onlineSwitch" aria-label="toggle"></button>
+        </div>
+        <div id="driverActiveRide"></div>
+        <div id="driverCoinsWarning" class="hidden">
+          <div class="card" style="border-color:var(--danger);background:var(--danger-soft)">
+            <div style="display:flex;gap:.7rem;align-items:flex-start">
+              <span class="ic lg" style="color:var(--danger)"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+              <div style="flex:1">
+                <div style="font-weight:700;font-family:var(--mm);color:var(--danger);margin-bottom:.15rem;font-size:.87rem">Coins ကုန်ဆုံးခါနီး</div>
+                <div style="font-size:.75rem;color:var(--text-2);font-family:var(--mm);line-height:1.4">ရက် ၁ ခုလျှင် 1 coin နုတ်ပါသည်။</div>
+                <button class="btn primary" style="margin-top:.55rem;padding:.45rem .9rem;font-size:.78rem" onclick="switchView('wallet')">Coins ဝယ်မည်</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sec">
+          <div class="sec-head">
+            <h2><span class="ic"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>ခရီးသည် တောင်းဆိုမှုများ</h2>
+            <button class="ibtn" id="refreshRidesBtn" style="width:30px;height:30px"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+          </div>
+          <div id="pendingRides"></div>
+        </div>
+        <div class="sec">
+          <div class="sec-head"><h2><span class="ic"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>ဒီနေ့ ဝင်ငွေ</h2></div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem">
+              <div><div style="font-size:.7rem;color:var(--text-3);font-family:var(--mm)">လက်ကျန် Coins</div>
+                <div style="font-size:1.6rem;font-weight:800;color:var(--primary);font-family:var(--mm)" id="driverCoins">0</div></div>
+              <div style="text-align:right"><div style="font-size:.7rem;color:var(--text-3);font-family:var(--mm)">ခရီး</div>
+                <div style="font-size:1.2rem;font-weight:800;font-family:var(--mm)" id="driverRides">0</div></div>
+            </div>
+            <div class="divider"></div>
+            <div style="display:flex;justify-content:space-between">
+              <div><div style="font-size:.68rem;color:var(--text-3);font-family:var(--mm)">Rating</div>
+                <div style="font-weight:700;font-family:var(--mm);display:flex;align-items:center;gap:.25rem;font-size:.85rem">
+                  <span class="ic sm" style="color:var(--warning)"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+                  <span id="driverRating">5.0</span></div></div>
+              <div style="text-align:right"><div style="font-size:.68rem;color:var(--text-3);font-family:var(--mm)">စုစုပေါင်း</div>
+                <div style="font-weight:700;font-family:var(--mm);color:var(--success);font-size:.85rem" id="driverEarnings">0</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="view hidden" id="viewHistory">
+      <div class="container">
+        <div class="sec-head" style="padding:.3rem 0 .6rem">
+          <h2><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>ခရီး မှတ်တမ်း</h2>
+        </div>
+        <div id="rideHistory"></div>
+      </div>
+    </section>
+
+    <!-- WALLET -->
+    <section class="view hidden" id="viewWallet">
+      <div class="container">
+        <div class="coin-hero">
+          <div class="lbl">လက်ကျန် Coins</div>
+          <div class="num" id="myCoinsHero">0</div>
+          <div class="sub" id="coinsSub">1 coin = 1,000 ကျပ်</div>
+        </div>
+        <div class="sec">
+          <div class="sec-head"><h2><span class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>Coins ဝယ်ယူရန်</h2></div>
+          <div class="pkg-grid" id="packageGrid"></div>
+        </div>
+        <div class="sec">
+          <div class="sec-head"><h2><span class="ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>ဝယ်ယူမှု မှတ်တမ်း</h2></div>
+          <div id="purchaseHistory"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section class="view hidden" id="viewProfile">
+      <div class="profile-bg" id="profileBg"></div>
+      <div class="profile-hero">
+        <div class="profile-av" id="profileAvatar">?</div>
+        <div class="profile-name" id="profileName">-</div>
+        <div class="profile-phone" id="profilePhone">-</div>
+        <div class="profile-stats">
+          <div class="stat"><div class="n" id="profRides">0</div><div class="l">ခရီး</div></div>
+          <div class="stat"><div class="n" id="profRating">5.0</div><div class="l">Rating</div></div>
+          <div class="stat"><div class="n" id="profCoins">0</div><div class="l">Coins</div></div>
+        </div>
+      </div>
+      <div class="container" style="padding-top:1rem">
+        <div class="card pad-0">
+          <div class="menu-item" id="editProfileBtn">
+            <div class="mi"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+            <div class="mb"><div class="mt">Profile ပြင်မည်</div><div class="ms">နာမည်၊ ပုံ၊ နောက်ခံ ပြောင်းလဲရန်</div></div>
+            <span class="chev"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+          <div class="menu-item" id="driverRegisterBtn">
+            <div class="mi" style="background:var(--primary-soft);color:var(--primary)">
+              <svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M5 11l1.5-4.5A1 1 0 0 1 7.5 6h9a1 1 0 0 1 1 .5L19 11"/><rect x="3" y="11" width="18" height="8" rx="2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+            </div>
+            <div class="mb"><div class="mt" id="driverRegTitle">Taxi သမား မှတ်ပုံတင်မည်</div><div class="ms" id="driverRegSub">ကားအချက်အလက် ထည့်သွင်းရန်</div></div>
+            <span class="chev"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+          <div class="menu-item" id="logoutBtn">
+            <div class="mi" style="background:var(--danger-soft);color:var(--danger)">
+              <svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </div>
+            <div class="mb"><div class="mt" style="color:var(--danger)">Logout ထွက်မည်</div></div>
+            <span class="chev"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN -->
+    <section class="view hidden" id="viewAdmin">
+      <div class="admin-tabs" id="adminTabs">
+        <button class="active" data-atab="dashboard">Dashboard</button>
+        <button data-atab="users">Users</button>
+        <button data-atab="rides">Rides</button>
+        <button data-atab="drivers">Drivers <span class="tab-badge hidden" id="pendingDriverBadge">0</span></button>
+        <button data-atab="purchases">Purchases</button>
+        <button data-atab="packages">Packages</button>
+        <button data-atab="settings">Settings</button>
+      </div>
+      <div class="container">
+        <div id="atabDashboard"></div>
+        <div id="atabUsers" class="hidden"></div>
+        <div id="atabRides" class="hidden"></div>
+        <div id="atabDrivers" class="hidden"></div>
+        <div id="atabPurchases" class="hidden"></div>
+        <div id="atabPackages" class="hidden"></div>
+        <div id="atabSettings" class="hidden"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tab-bar" id="tabBar"></nav>
+</div>
+
+<!-- CHAT PANEL -->
+<div id="chatPanel" class="chat-panel">
+  <div class="chat-head">
+    <button class="back" id="chatBackBtn"><svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div class="av" id="chatAvatar">?</div>
+    <div class="info"><div class="n" id="chatName">-</div><div class="s" id="chatSub">-</div></div>
+  </div>
+  <div class="chat-msgs" id="chatMessages"></div>
+  <div class="chat-input">
+    <input id="chatInput" placeholder="မက်ဆေ့ခ်ျ ရေးပါ..." />
+    <button class="send" id="chatSendBtn"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+  </div>
+</div>
+
+<!-- GROUP CHAT -->
+<div id="groupChatPanel" class="chat-panel">
+  <div class="chat-head">
+    <button class="back" id="groupChatBackBtn"><svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div class="av"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+    <div class="info"><div class="n">အိုးဝေ Taxi Group</div><div class="s">Taxi သမားများ အတွက်</div></div>
+  </div>
+  <div class="chat-msgs" id="groupMessages"></div>
+  <div class="chat-input">
+    <input id="groupInput" placeholder="စာ ရေးပါ..." />
+    <button class="send" id="groupSendBtn"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+  </div>
+</div>
+
+<!-- RIDE CONFIRM MODAL -->
+<div class="modal" id="rideConfirmModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Taxi တောင်းမည်</h3><div class="x" data-close="rideConfirmModal"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div style="padding:.75rem;background:var(--card-2);border-radius:10px;margin-bottom:.9rem">
+      <div style="display:flex;gap:.5rem;align-items:flex-start;margin-bottom:.5rem">
+        <span style="width:9px;height:9px;border-radius:50%;background:var(--success);margin-top:5px;flex-shrink:0"></span>
+        <span style="font-size:.83rem;font-family:var(--mm);flex:1" id="confirmPickup">-</span>
+      </div>
+      <div style="display:flex;gap:.5rem;align-items:flex-start">
+        <span style="width:9px;height:9px;border-radius:50%;background:var(--danger);margin-top:5px;flex-shrink:0"></span>
+        <span style="font-size:.83rem;font-family:var(--mm);flex:1" id="confirmDropoff">-</span>
+      </div>
+    </div>
+    <div class="fare-box"><div class="lbl">ခရီးခ</div><div class="amt"><span id="confirmFare">0</span><small>ကျပ်</small></div></div>
+    <div style="display:flex;gap:.5rem;margin-top:.9rem">
+      <button class="btn ghost" data-close="rideConfirmModal" style="flex:1">မလုပ်တော့ပါ</button>
+      <button class="btn primary" id="confirmRideBtn" style="flex:2">အတည်ပြုမည်</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT CONFIRM MODAL (Rider completes ride) -->
+<div class="modal" id="paymentModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>ငွေပေးချေမည်</h3><div class="x" data-close="paymentModal"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div class="fare-box" style="margin-bottom:1rem">
+      <div class="lbl">ခရီးခ</div>
+      <div class="amt"><span id="payFareAmount">0</span><small>ကျပ်</small></div>
+    </div>
+    <label style="display:block;font-size:.75rem;font-weight:600;color:var(--text-2);margin-bottom:.4rem;font-family:var(--mm)">ငွေပေးချေနည်း</label>
+    <div class="pay-methods">
+      <div class="pay-method" data-pay="cash">
+        <div class="icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg></div>
+        <div class="name">ငွေသား</div>
+        <div class="sub">Driver ကို တိုက်ရိုက်</div>
+      </div>
+      <div class="pay-method" data-pay="coins">
+        <div class="icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M15 9h-4a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4H9"/></svg></div>
+        <div class="name">Coins</div>
+        <div class="sub"><span id="payCoinCost">0</span> coins လိုအပ်</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:.75rem;color:var(--text-3);margin-top:.7rem;font-family:var(--mm)">
+      လက်ကျန် Coins: 🪙 <b id="payMyCoins">0</b>
+    </div>
+    <button class="btn primary btn-block" id="confirmPaymentBtn" style="margin-top:1rem" disabled>အတည်ပြုမည်</button>
+  </div>
+</div>
+
+<!-- DRIVER REGISTER MODAL -->
+<div class="modal" id="driverRegModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Taxi သမား မှတ်ပုံတင်</h3><div class="x" data-close="driverRegModal"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div style="padding:.8rem;background:var(--primary-soft);border-radius:10px;margin-bottom:1rem;display:flex;gap:.6rem;align-items:flex-start">
+      <span class="ic" style="color:var(--primary);margin-top:2px"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span>
+      <div style="font-size:.75rem;color:var(--primary);font-family:var(--mm);line-height:1.45">
+        မှတ်ပုံတင်ပြီးရင် <b>Admin အတည်ပြုချက် စောင့်ရပါမည်</b>။ အတည်ပြုပြီးရင် <b>30 coins</b> လက်ဆောင် ရပါမည်။
+      </div>
+    </div>
+    <div class="field"><label>ကား အမျိုးအစား</label><input id="drCarModel" placeholder="Toyota Probox" /></div>
+    <div class="field"><label>ကား နံပါတ်</label><input id="drCarPlate" placeholder="1A-1234" /></div>
+    <div class="field"><label>ကား အရောင်</label><input id="drCarColor" placeholder="အဖြူ" /></div>
+    <button class="btn primary btn-block" id="submitDriverReg">မှတ်ပုံတင်မည်</button>
+  </div>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="modal" id="editProfileModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Profile ပြင်မည်</h3><div class="x" data-close="editProfileModal"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+
+    <div class="field">
+      <label>နောက်ခံ ပုံ (Cover)</label>
+      <div id="epBgWrap">
+        <div class="upload-zone" id="epBgZone">
+          <div class="uz-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
+          <p>နောက်ခံ ပုံ တင်ရန် နှိပ်ပါ</p>
+          <small>PNG / JPG · Max 5MB</small>
+        </div>
+      </div>
+      <input type="file" id="epBgInput" accept="image/*" class="hidden" />
+    </div>
+
+    <div class="field">
+      <label>Profile ပုံ</label>
+      <div id="epAvatarWrap">
+        <div class="upload-zone" id="epAvatarZone">
+          <div class="uz-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2"/></svg></div>
+          <p>Profile ပုံ တင်ရန် နှိပ်ပါ</p>
+          <small>PNG / JPG · Max 5MB</small>
+        </div>
+      </div>
+      <input type="file" id="epAvatarInput" accept="image/*" class="hidden" />
+    </div>
+
+    <div class="field"><label>နာမည်</label><input id="epName" placeholder="သင့်နာမည်" /></div>
+    <button class="btn primary btn-block" id="saveProfileBtn">သိမ်းမည်</button>
+  </div>
+</div>
+
+<!-- BUY COINS MODAL -->
+<div class="modal" id="buyModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Coins ဝယ်ယူရန်</h3><div class="x" data-close="buyModal"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div id="buyStep1">
+      <div class="fare-box" style="margin-bottom:1rem">
+        <div><div class="lbl">Package</div><div style="font-weight:700;font-family:var(--mm);font-size:.88rem" id="buyPkgLabel">-</div></div>
+        <div class="amt"><span id="buyPkgCoins">0</span><small>coins</small></div>
+      </div>
+      <div class="field"><label>ငွေပေးချေနည်း</label>
+        <select id="buyMethod">
+          <option value="kpay">KPay</option>
+          <option value="wave">Wave Money</option>
+        </select>
+      </div>
+      <div style="padding:.9rem;background:var(--card-2);border-radius:10px;text-align:center;margin-bottom:1rem">
+        <div style="font-size:.7rem;color:var(--text-3);font-family:var(--mm);margin-bottom:.3rem">ငွေလွှဲရန် ဖုန်းနံပါတ်</div>
+        <div style="font-size:1.1rem;font-weight:800;font-family:monospace;color:var(--text)" id="buyPhone">09xxxxxxxxx</div>
+        <div style="font-size:.72rem;color:var(--text-3);font-family:var(--mm);margin-top:.3rem" id="buyName">-</div>
+        <div id="buyQrWrap" class="hidden" style="margin-top:.7rem">
+          <img id="buyQrImg" style="max-width:200px;margin:0 auto;border-radius:10px" />
+        </div>
+      </div>
+      <button class="btn primary btn-block" id="submitBuyBtn">ငွေလွှဲပြီးပါပြီ</button>
+    </div>
+    <div id="buyStep2" class="hidden" style="text-align:center;padding:1.2rem 0">
+      <div style="width:64px;height:64px;margin:0 auto .8rem;border-radius:50%;background:var(--success-soft);display:flex;align-items:center;justify-content:center;color:var(--success)">
+        <svg viewBox="0 0 24 24" style="width:32px;height:32px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <h3 style="font-family:var(--mm);font-size:1rem;font-weight:800;margin-bottom:.35rem">Admin ဆီ ပို့ပြီးပါပြီ</h3>
+      <p style="font-size:.8rem;color:var(--text-2);font-family:var(--mm);margin-bottom:1rem">Admin အတည်ပြုပြီးရင် Coins ရောက်ပါမည်။</p>
+      <button class="btn primary btn-block" data-close="buyModal">ပြီးပါပြီ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN COIN MODAL -->
+<div class="modal" id="adminCoinModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Coins စီမံရန်</h3><div class="x" data-close="adminCoinModal"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div style="text-align:center;margin-bottom:1rem">
+      <div style="font-weight:700;font-family:var(--mm);font-size:.95rem" id="adminCoinUserName">-</div>
+      <div style="font-size:.73rem;color:var(--text-3);font-family:var(--mm);margin-top:.15rem">လက်ကျန်: <b id="adminCoinUserBalance" style="color:var(--primary)">0</b> coins</div>
+    </div>
+    <div class="field"><label>အရေအတွက်</label><input type="number" id="adminCoinAmount" placeholder="ဥပမာ: 100" /></div>
+    <div class="field"><label>အကြောင်းပြချက် (optional)</label><input id="adminCoinReason" placeholder="ဥပမာ: Package approval" /></div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn danger" id="adminCoinDeduct" style="flex:1">နုတ်မည်</button>
+      <button class="btn success" id="adminCoinAdd" style="flex:1">ထည့်မည်</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PACKAGE MODAL -->
+<div class="modal" id="adminPkgModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="adminPkgTitle">Package အသစ်</h3><div class="x" data-close="adminPkgModal"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div class="field"><label>Package ပုံ</label>
+      <div id="pkgImageWrap">
+        <div class="upload-zone" id="pkgUploadZone">
+          <div class="uz-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
+          <p>ပုံ တင်ရန် နှိပ်ပါ</p><small>PNG / JPG · Max 5MB</small>
+        </div>
+      </div>
+      <input type="file" id="pkgImageInput" accept="image/*" class="hidden" />
+    </div>
+    <div class="field"><label>Package အမည်</label><input id="adminPkgName" placeholder="Starter / Basic / Pro" /></div>
+    <div class="field"><label>Coins အရေအတွက်</label><input type="number" id="adminPkgCoins" placeholder="100" /></div>
+    <div class="field"><label>ဈေးနှုန်း (ကျပ်)</label><input type="number" id="adminPkgPrice" placeholder="100000" /></div>
+    <button class="btn primary btn-block" id="adminPkgSave">သိမ်းမည်</button>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div class="modal" id="notifModal">
+  <div class="modal-box sheet">
+    <div class="sheet-title">အသိပေးချက်များ</div>
+    <div id="notifList" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="sheet-action" data-close="notifModal" style="justify-content:center;margin-top:.5rem">ပိတ်မည်</div>
+  </div>
+</div>
+
+<!-- MENU -->
+<div class="modal" id="menuModal">
+  <div class="modal-box sheet">
+    <div class="sheet-title">Menu</div>
+    <div class="sheet-action" id="menuGroupChat">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      အိုးဝေ Taxi Group Chat
+    </div>
+    <div class="sheet-action" id="menuProfile">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      Profile
+    </div>
+    <div class="sheet-action" data-close="menuModal" style="justify-content:center">ပိတ်မည်</div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="modal" id="confirmDialog">
+  <div class="modal-box">
+    <div class="iw"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <h3 id="confirmTitle">သေချာလား?</h3>
+    <p id="confirmMsg"></p>
+    <div class="actions">
+      <button class="btn ghost" id="confirmNo">မလုပ်တော့</button>
+      <button class="btn primary" id="confirmYes">အတည်ပြု</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ CONFIG ============ */
+const API_URL = 'https://hinthada-taxi-api.vercel.app/api/index';
+const LOGO_URL = 'https://lh3.googleusercontent.com/d/1gQy28YrpBXUeqSctF50DXsd0yvVpxNXb=w400';
+
+/* ============ HELPERS ============ */
+const $ = id => document.getElementById(id);
+const qa = s => document.querySelectorAll(s);
+function esc(s){if(s==null)return '';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function timeAgo(iso){const d=new Date(iso);const df=(Date.now()-d.getTime())/1000;
+  if(df<60)return 'ယခု';if(df<3600)return Math.floor(df/60)+' မိနစ်';
+  if(df<86400)return Math.floor(df/3600)+' နာရီ';return Math.floor(df/86400)+' ရက်';}
+function timeShort(iso){return new Date(iso).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}
+function fmt(n){return Number(n||0).toLocaleString();}
+
+/* ============ STATE ============ */
+const State = {
+  user: null, driver: null, isAdmin: false, isDriver: false, isOnline: false,
+  activeRide: null, myRides: [], pendingRides: [], availableDrivers: [],
+  packages: [], purchases: [], notifications: [], settings: {},
+  currentView: 'home', currentChatRideId: null, currentChatUser: null,
+  chatPoll: null, groupPoll: null, mainPoll: null,
+  map: null, markers: { pickup: null, dropoff: null, drivers: [] },
+  pickup: null, dropoff: null, selectedPkg: null,
+  adminData: null, adminCoinUser: null, adminEditingPkgId: null,
+  epAvatarUrl: '', epBgUrl: '', pkgImageUrl: '',
+  routeMode: 'pickup', searchTimer: null,
+  lastLocUpdate: 0, progressTimer: null,
+  selectedPayMethod: null
+};
+
+/* ============ PROGRESS ============ */
+let progressActive = false;
+function startProgress(label) {
+  if (progressActive) return;
+  progressActive = true;
+  $('loadingLabel').textContent = label || 'ခဏစောင့်ပါ...';
+  $('loadingFill').style.width = '5%';
+  $('loadingPct').textContent = '5%';
+  $('loading').classList.add('show');
+  let pct = 5;
+  State.progressTimer = setInterval(() => {
+    if (pct < 90) {
+      pct = Math.min(90, pct + Math.random() * 8 + 2);
+      $('loadingFill').style.width = pct + '%';
+      $('loadingPct').textContent = Math.round(pct) + '%';
+    }
+  }, 250);
+}
+function endProgress() {
+  if (!progressActive) return;
+  clearInterval(State.progressTimer);
+  $('loadingFill').style.width = '100%';
+  $('loadingPct').textContent = '100%';
+  setTimeout(() => {
+    $('loading').classList.remove('show');
+    progressActive = false;
+    setTimeout(() => { $('loadingFill').style.width = '0%'; $('loadingPct').textContent = '0%'; }, 250);
+  }, 250);
+}
+
+/* ============ API ============ */
+async function api(action, params = {}, opts = {}) {
+  const show = opts.loading !== false;
+  const label = opts.label || 'ခဏစောင့်ပါ...';
+  if (show) startProgress(label);
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...params })
+    });
+    const txt = await res.text();
+    try { return JSON.parse(txt); }
+    catch { return { success: false, error: 'Bad response' }; }
+  } catch (err) {
+    return { success: false, error: err.message };
+  } finally {
+    if (show) endProgress();
+  }
+}
+
+/* ============ TOAST ============ */
+const ICHECK = '<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+const IALERT = '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+function toast(msg, type = '') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  const icon = type === 'success' ? ICHECK : type === 'error' ? IALERT : '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+  el.innerHTML = `<span class="ic sm">${icon}</span><span>${esc(msg)}</span>`;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 2600);
+}
+function btnLoad(btn, on) {
+  if (!btn) return;
+  if (on) { btn.dataset.old = btn.innerHTML; btn.classList.add('loading'); btn.disabled = true; }
+  else { btn.classList.remove('loading'); btn.disabled = false; if (btn.dataset.old) btn.innerHTML = btn.dataset.old; }
+}
+
+/* ============ CONFIRM ============ */
+function confirmDialog(opts) {
+  return new Promise(resolve => {
+    $('confirmTitle').textContent = opts.title || 'သေချာလား?';
+    $('confirmMsg').textContent = opts.message || '';
+    $('confirmYes').textContent = opts.yes || 'အတည်ပြု';
+    $('confirmNo').textContent = opts.no || 'မလုပ်တော့';
+    $('confirmYes').className = 'btn ' + (opts.danger ? 'danger' : 'primary');
+    $('confirmDialog').classList.add('open');
+    const cleanup = v => {
+      $('confirmDialog').classList.remove('open');
+      $('confirmYes').removeEventListener('click', y);
+      $('confirmNo').removeEventListener('click', n);
+      resolve(v);
+    };
+    const y = () => cleanup(true);
+    const n = () => cleanup(false);
+    $('confirmYes').addEventListener('click', y);
+    $('confirmNo').addEventListener('click', n);
+  });
+}
+
+/* ============ THEME ============ */
+function applyTheme(t) {
+  document.body.className = t === 'dark' ? 'dark' : 'light';
+  const icon = $('themeIcon');
+  if (t === 'dark') icon.innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>';
+  else icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  try { localStorage.setItem('hinthada_theme', t); } catch {}
+  if (State.map) setTimeout(() => State.map.invalidateSize(), 100);
+}
+$('themeBtn').onclick = () => applyTheme(document.body.classList.contains('dark') ? 'light' : 'dark');
+
+/* ============ SESSION ============ */
+const SK = 'hinthada_session_v5';
+function saveSession(id) { try { localStorage.setItem(SK, JSON.stringify({ userId: id })); } catch {} }
+function loadSession() { try { return JSON.parse(localStorage.getItem(SK) || 'null'); } catch { return null; } }
+function clearSession() { try { localStorage.removeItem(SK); } catch {} }
+
+/* ============ LANDING ============ */
+setTimeout(() => {
+  $('landing').classList.add('fade-out');
+  setTimeout(() => { $('landing').style.display = 'none'; boot(); }, 500);
+}, 1600);
+
+/* ============ BOOT ============ */
+async function boot() {
+  const s = loadSession();
+  if (s && s.userId) {
+    const r = await api('bootstrap', { userId: s.userId }, { label: 'ချိတ်ဆက်နေသည်...' });
+    if (r.success && r.user) {
+      State.user = r.user;
+      State.driver = r.driver;
+      State.isDriver = !!(r.driver && r.driver.isApproved);
+      State.isAdmin = r.user.role === 'admin';
+      State.notifications = r.notifications || [];
+      State.settings = r.settings || {};
+      enterApp();
+      return;
+    }
+  }
+  $('authScreen').classList.remove('hidden');
+}
+
+/* ============ AUTH ============ */
+let selectedRole = 'rider';
+qa('[data-auth]').forEach(b => b.onclick = () => {
+  qa('[data-auth]').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  const t = b.dataset.auth;
+  $('authLogin').classList.toggle('hidden', t !== 'login');
+  $('authRegister').classList.toggle('hidden', t !== 'register');
+  $('loginMsg').textContent = ''; $('regMsg').textContent = '';
+});
+qa('#rolePicker button').forEach(b => b.onclick = () => {
+  qa('#rolePicker button').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  selectedRole = b.dataset.role;
+});
+
+$('loginBtn').onclick = async () => {
+  const phone = $('loginPhone').value.trim();
+  const password = $('loginPass').value;
+  if (!phone || !password) { $('loginMsg').textContent = 'ဖုန်းနဲ့ စကားဝှက် ဖြည့်ပါ'; return; }
+  btnLoad($('loginBtn'), true);
+  $('loginMsg').textContent = '';
+  const r = await api('login', { phone, password }, { label: 'ဝင်ရောက်နေသည်...' });
+  btnLoad($('loginBtn'), false);
+  if (!r.success) { $('loginMsg').textContent = r.error; return; }
+  State.user = r.user;
+  State.isAdmin = r.user.role === 'admin';
+  saveSession(r.user.id);
+  const dr = await api('getMyDriverProfile', { userId: r.user.id }, { loading: false });
+  if (dr.success && dr.driver) {
+    State.driver = dr.driver;
+    State.isDriver = !!dr.driver.isApproved;
+  }
+  enterApp();
+  toast('ဝင်ရောက်ပြီးပါပြီ', 'success');
+};
+
+$('regBtn').onclick = async () => {
+  const phone = $('regPhone').value.trim();
+  const name = $('regName').value.trim();
+  const password = $('regPass').value;
+  if (!phone || !name || !password) { $('regMsg').textContent = 'အားလုံး ဖြည့်ပါ'; return; }
+  if (password.length < 6) { $('regMsg').textContent = 'စကားဝှက် ၆ လုံး အနည်းဆုံး'; return; }
+  btnLoad($('regBtn'), true);
+  $('regMsg').textContent = '';
+  const r = await api('register', { phone, name, password, role: selectedRole }, { label: 'Account ဖွင့်နေသည်...' });
+  btnLoad($('regBtn'), false);
+  if (!r.success) { $('regMsg').textContent = r.error; return; }
+  State.user = r.user;
+  saveSession(r.user.id);
+  enterApp();
+  if (selectedRole === 'driver') {
+    toast('Account ဖွင့်ပြီးပါပြီ! Taxi အချက်အလက် ဖြည့်ပါ', 'success');
+    setTimeout(() => $('driverRegModal').classList.add('open'), 500);
+  } else {
+    toast('ကြိုဆိုပါတယ်', 'success');
+  }
+};
+
+/* ============ ENTER APP ============ */
+async function enterApp() {
+  $('authScreen').classList.add('hidden');
+  $('app').classList.add('visible');
+  renderTabBar();
+  renderProfile();
+  if (State.isAdmin) { switchView('admin'); loadAdminData(); }
+  else if (State.isDriver) { switchView('driver'); checkDriverStatus(); }
+  else if (State.driver && !State.driver.isApproved) { switchView('driver'); checkDriverStatus(); }
+  else { switchView('home'); setTimeout(initMap, 200); }
+  loadPackages();
+  loadMyRides();
+  updateNotifBadge();
+  renderNotifications();
+  startMainPolling();
+}
+
+/* ============ TAB BAR ============ */
+function renderTabBar() {
+  const bar = $('tabBar');
+  const I = {
+    dash: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
+    profile: '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    taxi: '<svg viewBox="0 0 24 24"><path d="M5 11l1.5-4.5A1 1 0 0 1 7.5 6h9a1 1 0 0 1 1 .5L19 11"/><rect x="3" y="11" width="18" height="8" rx="2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>',
+    group: '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    history: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    coin: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M15 9h-4a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4H9"/></svg>',
+    home: '<svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2V11z"/></svg>'
+  };
+  let tabs = '';
+  if (State.isAdmin) {
+    tabs = `<button data-view="admin" class="active"><span class="ic">${I.dash}</span><span>Dashboard</span></button>
+      <button data-view="profile"><span class="ic">${I.profile}</span><span>Profile</span></button>`;
+  } else if (State.isDriver) {
+    tabs = `<button data-view="driver" class="active"><span class="ic">${I.taxi}</span><span>ခရီး</span></button>
+      <button data-view="group"><span class="ic">${I.group}</span><span>Group</span></button>
+      <button data-view="history"><span class="ic">${I.history}</span><span>မှတ်တမ်း</span></button>
+      <button data-view="wallet"><span class="ic">${I.coin}</span><span>Coins</span></button>
+      <button data-view="profile"><span class="ic">${I.profile}</span><span>Profile</span></button>`;
+  } else {
+    tabs = `<button data-view="home" class="active"><span class="ic">${I.home}</span><span>တောင်း</span></button>
+      <button data-view="history"><span class="ic">${I.history}</span><span>မှတ်တမ်း</span></button>
+      <button data-view="wallet"><span class="ic">${I.coin}</span><span>Coins</span></button>
+      <button data-view="profile"><span class="ic">${I.profile}</span><span>Profile</span></button>`;
+  }
+  bar.innerHTML = tabs;
+  qa('#tabBar button').forEach(b => b.onclick = () => {
+    const v = b.dataset.view;
+    if (v === 'group') { openGroupChat(); return; }
+    switchView(v);
+  });
+}
+
+/* ============ SWITCH VIEW ============ */
+function switchView(view) {
+  try {
+    State.currentView = view;
+    qa('#tabBar button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+    qa('.view').forEach(s => { s.classList.add('hidden'); s.classList.remove('active'); });
+    const map = { home:'viewHome', driver:'viewDriver', history:'viewHistory',
+      wallet:'viewWallet', profile:'viewProfile', admin:'viewAdmin' };
+    const el = $(map[view]);
+    if (el) { el.classList.remove('hidden'); el.classList.add('active'); }
+    if (view === 'home' && !State.map) setTimeout(initMap, 100);
+    if (view === 'home') loadAvailableDrivers();
+    if (view === 'driver') { checkDriverStatus(); loadPendingRides(); }
+    if (view === 'history') loadMyRides();
+    if (view === 'wallet') { loadPackages(); loadPurchases(); }
+    if (view === 'profile') renderProfile();
+    if (view === 'admin') loadAdminData();
+    $('appMain').scrollTop = 0;
+  } catch (err) { console.error(err); toast('Error: ' + err.message, 'error'); }
+}
+window.switchView = switchView;
+
+/* ============ MAP ============ */
+function initMap() {
+  if (State.map) { setTimeout(() => State.map.invalidateSize(), 100); return; }
+  const c = $('mapContainer');
+  if (!c) return;
+  State.map = L.map('mapContainer', { zoomControl: false }).setView([17.6497, 95.4617], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+    maxZoom: 19, subdomains: 'abc', attribution: '&copy; OSM'
+  }).addTo(State.map);
+  State.map.on('click', e => {
+    const { lat, lng } = e.latlng;
+    if (State.routeMode === 'pickup') setPickup(lat, lng);
+    else setDropoff(lat, lng);
+  });
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => State.map.setView([pos.coords.latitude, pos.coords.longitude], 15),
+      () => {}, { timeout: 5000 }
+    );
+  }
+}
+function setPickup(lat, lng, address) {
+  State.pickup = { lat, lng, address: address || 'ရှာဖွေနေသည်...' };
+  $('pickupInput').value = State.pickup.address;
+  $('pickupClear').classList.add('show');
+  if (State.markers.pickup) State.map.removeLayer(State.markers.pickup);
+  State.markers.pickup = L.marker([lat, lng], {
+    icon: L.divIcon({ html: '<div style="background:#059669;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #059669,0 2px 8px rgba(0,0,0,.3)"></div>', className: '', iconSize:[16,16], iconAnchor:[8,8] })
+  }).addTo(State.map);
+  if (!address) reverseGeocode(lat, lng, a => { State.pickup.address = a; $('pickupInput').value = a; updateFareEstimate(); });
+  else updateFareEstimate();
+}
+function setDropoff(lat, lng, address) {
+  State.dropoff = { lat, lng, address: address || 'ရှာဖွေနေသည်...' };
+  $('dropoffInput').value = State.dropoff.address;
+  $('dropoffClear').classList.add('show');
+  if (State.markers.dropoff) State.map.removeLayer(State.markers.dropoff);
+  State.markers.dropoff = L.marker([lat, lng], {
+    icon: L.divIcon({ html: '<div style="background:#dc2626;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #dc2626,0 2px 8px rgba(0,0,0,.3)"></div>', className: '', iconSize:[16,16], iconAnchor:[8,8] })
+  }).addTo(State.map);
+  if (!address) reverseGeocode(lat, lng, a => { State.dropoff.address = a; $('dropoffInput').value = a; updateFareEstimate(); });
+  else updateFareEstimate();
+}
+function clearMarkers() {
+  if (State.markers.pickup) { State.map.removeLayer(State.markers.pickup); State.markers.pickup = null; }
+  if (State.markers.dropoff) { State.map.removeLayer(State.markers.dropoff); State.markers.dropoff = null; }
+}
+async function reverseGeocode(lat, lng, cb) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=my,en`);
+    const d = await res.json();
+    cb(d.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+  } catch { cb(`${lat.toFixed(4)}, ${lng.toFixed(4)}`); }
+}
+function haversine(a, b) {
+  if (!a || !b) return 0;
+  const R = 6371, dLat = (b.lat-a.lat)*Math.PI/180, dLng = (b.lng-a.lng)*Math.PI/180;
+  const x = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+}
+function updateFareEstimate() {
+  if (!State.pickup || !State.dropoff || State.pickup.address.includes('ရှာဖွေ') || State.dropoff.address.includes('ရှာဖွေ')) {
+    $('fareEstimate').classList.add('hidden'); return;
+  }
+  const km = haversine(State.pickup, State.dropoff);
+  const rate = Number(State.settings?.farePerKm || 500);
+  const fare = Math.max(1000, Math.round(km * rate / 100) * 100);
+  $('fareAmount').textContent = fmt(fare);
+  $('fareDistance').textContent = `~${km.toFixed(1)} km · ${fmt(fare)} ကျပ်`;
+  $('fareEstimate').classList.remove('hidden');
+}
+
+/* ============ ROUTE MODE ============ */
+function updateModeButtons() {
+  const p = $('modePickup'), d = $('modeDropoff');
+  if (State.routeMode === 'pickup') {
+    p.className = 'btn success'; p.style.cssText = 'flex:1;padding:.5rem;font-size:.78rem;border-radius:8px';
+    d.className = 'btn ghost'; d.style.cssText = 'flex:1;padding:.5rem;font-size:.78rem;border-radius:8px';
+    $('pickupWrap').classList.add('active'); $('dropoffWrap').classList.remove('active');
+  } else {
+    p.className = 'btn ghost'; p.style.cssText = 'flex:1;padding:.5rem;font-size:.78rem;border-radius:8px';
+    d.className = 'btn success'; d.style.cssText = 'flex:1;padding:.5rem;font-size:.78rem;border-radius:8px';
+    $('pickupWrap').classList.remove('active'); $('dropoffWrap').classList.add('active');
+  }
+}
+$('modePickup').onclick = () => { State.routeMode = 'pickup'; updateModeButtons(); };
+$('modeDropoff').onclick = () => { State.routeMode = 'dropoff'; updateModeButtons(); };
+
+/* ============ SEARCH ============ */
+function setupSearch(inputId, suggId, type) {
+  const input = $(inputId);
+  const sugg = $(suggId);
+  input.addEventListener('input', () => {
+    const q = input.value.trim();
+    if (q.length < 3) { sugg.innerHTML = ''; return; }
+    clearTimeout(State.searchTimer);
+    State.searchTimer = setTimeout(() => searchAddress(q, sugg, type), 500);
+  });
+  input.addEventListener('focus', () => {
+    if (State.routeMode !== type) { State.routeMode = type; updateModeButtons(); }
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#' + suggId) && !e.target.closest('#' + inputId)) sugg.innerHTML = '';
+  });
+}
+async function searchAddress(query, sugg, type) {
+  sugg.innerHTML = '<div class="suggestion loading">ရှာနေသည်...</div>';
+  try {
+    let res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=my,en&countrycodes=mm`);
+    let data = await res.json();
+    if (!data.length) {
+      res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=my,en`);
+      data = await res.json();
+    }
+    if (!data.length) { sugg.innerHTML = '<div class="suggestion loading">ရှာမတွေ့ပါ</div>'; return; }
+    renderSuggestions(data, sugg, type);
+  } catch { sugg.innerHTML = '<div class="suggestion loading">Error — ပြန်စမ်းပါ</div>'; }
+}
+function renderSuggestions(results, sugg, type) {
+  sugg.innerHTML = results.map(r => {
+    const parts = r.display_name.split(',');
+    const main = parts[0];
+    const sub = parts.slice(1).join(',').trim();
+    return `<div class="suggestion" data-lat="${r.lat}" data-lng="${r.lon}" data-addr="${esc(r.display_name)}" data-type="${type}">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+      <div class="text"><div class="main">${esc(main)}</div><div class="sub">${esc(sub)}</div></div>
+    </div>`;
+  }).join('');
+  sugg.querySelectorAll('.suggestion').forEach(el => {
+    el.onclick = () => {
+      const lat = Number(el.dataset.lat), lng = Number(el.dataset.lng);
+      const addr = el.dataset.addr, t = el.dataset.type;
+      if (t === 'pickup') setPickup(lat, lng, addr);
+      else setDropoff(lat, lng, addr);
+      sugg.innerHTML = '';
+      $(t === 'pickup' ? 'pickupInput' : 'dropoffInput').blur();
+      State.map.setView([lat, lng], 15);
+    };
+  });
+}
+$('pickupClear').onclick = () => {
+  State.pickup = null; $('pickupInput').value = ''; $('pickupClear').classList.remove('show');
+  if (State.markers.pickup) { State.map.removeLayer(State.markers.pickup); State.markers.pickup = null; }
+  $('fareEstimate').classList.add('hidden');
+};
+$('dropoffClear').onclick = () => {
+  State.dropoff = null; $('dropoffInput').value = ''; $('dropoffClear').classList.remove('show');
+  if (State.markers.dropoff) { State.map.removeLayer(State.markers.dropoff); State.markers.dropoff = null; }
+  $('fareEstimate').classList.add('hidden');
+};
+$('locateBtn').onclick = () => {
+  if (!navigator.geolocation) { toast('Location မရနိုင်ပါ', 'error'); return; }
+  toast('တည်နေရာ ရှာနေသည်...', 'info');
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      State.map.setView([lat, lng], 16);
+      if (State.routeMode === 'pickup') setPickup(lat, lng);
+      else setDropoff(lat, lng);
+      toast('တည်နေရာ တွေ့ပါပြီ', 'success');
+    },
+    err => toast(err.message, 'error'),
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+};
+
+/* ============ REQUEST RIDE ============ */
+$('requestRideBtn').onclick = () => {
+  if (!State.pickup || !State.dropoff) return;
+  $('confirmPickup').textContent = State.pickup.address;
+  $('confirmDropoff').textContent = State.dropoff.address;
+  $('confirmFare').textContent = $('fareAmount').textContent;
+  $('rideConfirmModal').classList.add('open');
+};
+$('confirmRideBtn').onclick = async () => {
+  btnLoad($('confirmRideBtn'), true);
+  const r = await api('requestRide', { riderId: State.user.id, pickup: State.pickup, dropoff: State.dropoff }, { label: 'Taxi တောင်းနေသည်...' });
+  btnLoad($('confirmRideBtn'), false);
+  $('rideConfirmModal').classList.remove('open');
+  if (!r.success) { toast(r.error, 'error'); return; }
+  State.activeRide = r.ride;
+  toast('Taxi တောင်းပြီးပါပြီ', 'success');
+  renderActiveRide();
+  State.pickup = null; State.dropoff = null;
+  $('pickupInput').value = ''; $('dropoffInput').value = '';
+  $('pickupClear').classList.remove('show'); $('dropoffClear').classList.remove('show');
+  clearMarkers(); $('fareEstimate').classList.add('hidden');
+};
+
+/* ============ ACTIVE RIDE ============ */
+function renderActiveRide() {
+  const c = $('activeRideContainer');
+  if (!State.activeRide) { c.innerHTML = ''; return; }
+  const ride = State.activeRide;
+  const order = ['pending', 'accepted', 'arriving', 'in_progress'];
+  const idx = order.indexOf(ride.status);
+  const steps = [{ lbl:'တောင်းဆို' }, { lbl:'လက်ခံ' }, { lbl:'လာ' }, { lbl:'ခရီး' }];
+
+  let driverHtml;
+  if (ride.driver) {
+    driverHtml = `<div class="dr">
+      <div class="av">${ride.driver.image ? `<img src="${esc(ride.driver.image)}"/>` : (ride.driver.name||'D').charAt(0)}</div>
+      <div class="info">
+        <div class="name">${esc(ride.driver.name || 'Driver')}</div>
+        <div class="sub">${esc(ride.driver.carModel || '')} · ${esc(ride.driver.carPlate || '')}</div>
+      </div>
+      <a href="tel:${esc(ride.driver.phone)}" class="ic-btn" style="margin-right:.3rem">
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      </a>
+      <button class="ic-btn" onclick="openRideChat('${esc(ride.driver.userId)}','${esc(ride.driver.name || 'Driver')}')">
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </button>
+    </div>`;
+  } else {
+    driverHtml = `<div class="dr">
+      <div class="av" style="color:var(--primary)"><svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:1.8;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"><path d="M5 11l1.5-4.5A1 1 0 0 1 7.5 6h9a1 1 0 0 1 1 .5L19 11"/><rect x="3" y="11" width="18" height="8" rx="2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+      <div class="info"><div class="name">Taxi ရှာနေသည်...</div><div class="sub">ခဏစောင့်ပါ</div></div>
+    </div>`;
+  }
+
+  let actions = '';
+  if (['pending', 'accepted', 'arriving'].includes(ride.status)) {
+    actions = `<button class="btn danger btn-block" onclick="cancelRide()">ပယ်ဖျက်မည်</button>`;
+  } else if (ride.status === 'in_progress') {
+    actions = `<div class="otp-box">
+      <div class="lbl">ဒီ OTP ကို ယာဉ်မောင်းကို ပြောပါ</div>
+      <div class="code">${esc(ride.otp)}</div>
+    </div>
+    <button class="btn success btn-block" onclick="openPaymentModal()">✓ ရောက်ပါပြီ — ငွေချေမည်</button>`;
+  }
+
+  c.innerHTML = `<div class="active-ride">
+    ${driverHtml}
+    <div class="progress-steps">
+      ${steps.map((s,i) => `<div class="s ${i<idx?'done':i===idx?'cur':''}">
+        <div class="c">${i<idx ? '✓' : i+1}</div><div class="l">${s.lbl}</div>
+      </div>`).join('')}
+    </div>
+    <div class="route-sum">
+      <div class="ln"><span class="d g"></span><div class="t">${esc(ride.pickup.address)}</div></div>
+      <div class="ln"><span class="d r"></span><div class="t">${esc(ride.dropoff.address)}</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem">
+      <span style="font-size:.72rem;color:var(--text-3)">${ride.distance} km</span>
+      <span style="font-weight:800;font-size:1.1rem;color:var(--primary);font-family:var(--mm)">${fmt(ride.estimatedCoins)} ကျပ်</span>
+    </div>
+    ${actions}
+  </div>`;
+}
+async function cancelRide() {
+  const ok = await confirmDialog({ title:'ခရီး ပယ်ဖျက်မည်?', yes:'ပယ်ဖျက်', danger:true });
+  if (!ok) return;
+  const r = await api('cancelRide', { rideId: State.activeRide.id, userId: State.user.id });
+  if (r.success) {
+    State.activeRide = null;
+    renderActiveRide();
+    toast('ပယ်ဖျက်ပြီးပါပြီ', 'success');
+    loadMyRides();
+  }
+}
+window.cancelRide = cancelRide;
+
+/* ============ PAYMENT MODAL (Cash / Coins) ============ */
+function openPaymentModal() {
+  if (!State.activeRide) return;
+  const fare = State.activeRide.estimatedCoins;
+  const coinPrice = Number(State.settings?.coinPriceMMK || 1000);
+  const coinsNeeded = Math.ceil(fare / coinPrice);
+  $('payFareAmount').textContent = fmt(fare);
+  $('payCoinCost').textContent = coinsNeeded;
+  $('payMyCoins').textContent = fmt(State.user?.coins || 0);
+  State.selectedPayMethod = null;
+  qa('.pay-method').forEach(el => el.classList.remove('active'));
+  $('confirmPaymentBtn').disabled = true;
+  $('paymentModal').classList.add('open');
+}
+window.openPaymentModal = openPaymentModal;
+
+qa('.pay-method').forEach(el => el.onclick = () => {
+  qa('.pay-method').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  State.selectedPayMethod = el.dataset.pay;
+  $('confirmPaymentBtn').disabled = false;
+});
+
+$('confirmPaymentBtn').onclick = async () => {
+  if (!State.selectedPayMethod || !State.activeRide) return;
+  btnLoad($('confirmPaymentBtn'), true);
+  const r = await api('confirmRideCompletion', {
+    rideId: State.activeRide.id, riderId: State.user.id,
+    paymentMethod: State.selectedPayMethod
+  }, { label: 'ခရီး ပြီးဆုံးနေသည်...' });
+  btnLoad($('confirmPaymentBtn'), false);
+  if (r.success) {
+    toast('ခရီး ပြီးပါပြီ', 'success');
+    State.activeRide = null;
+    renderActiveRide();
+    $('paymentModal').classList.remove('open');
+    refreshUser();
+    loadMyRides();
+  } else toast(r.error, 'error');
+};
+
+/* ============ AVAILABLE DRIVERS ============ */
+async function loadAvailableDrivers() {
+  const center = State.pickup || (State.map ? State.map.getCenter() : { lat:17.6497, lng:95.4617 });
+  const r = await api('getAvailableDrivers', { lat: center.lat, lng: center.lng, radiusKm: 25 }, { loading: false });
+  if (r.success) {
+    State.availableDrivers = r.drivers || [];
+    renderAvailableDrivers();
+    updateDriverMarkers();
+  }
+}
+function renderAvailableDrivers() {
+  const c = $('availableDrivers');
+  $('nearbyCount').textContent = State.availableDrivers.length + ' စီး';
+  if (!State.availableDrivers.length) {
+    c.innerHTML = `<div class="empty"><div class="ic"><svg viewBox="0 0 24 24"><path d="M5 11l1.5-4.5A1 1 0 0 1 7.5 6h9a1 1 0 0 1 1 .5L19 11"/><rect x="3" y="11" width="18" height="8" rx="2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div><div>အနီးအနားမှာ Taxi မရှိပါ</div></div>`;
+    return;
+  }
+  c.innerHTML = State.availableDrivers.map(d => `
+    <div class="driver-card">
+      <div class="av">${d.profileImage ? `<img src="${esc(d.profileImage)}"/>` : (d.name||'D').charAt(0).toUpperCase()}</div>
+      <div class="info">
+        <div class="name">${esc(d.name)} <span class="v"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span></div>
+        <div class="meta"><span>${esc(d.carModel||'')}</span>·<span>${esc(d.carPlate||'')}</span></div>
+      </div>
+      <div class="act">
+        <span class="km">${d.distanceKm}km</span>
+        <a href="tel:${esc(d.phone)}" class="call"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+        <button class="msg" onclick="copyPhone('${esc(d.phone)}','${esc(d.name)}')"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+      </div>
+    </div>`).join('');
+}
+async function copyPhone(phone, name) {
+  try { await navigator.clipboard.writeText(phone); toast(`${name} — ${phone} copy ပြီ`, 'success'); }
+  catch { toast('Copy မလုပ်နိုင်ပါ', 'error'); }
+}
+window.copyPhone = copyPhone;
+function updateDriverMarkers() {
+  if (!State.map) return;
+  State.markers.drivers.forEach(m => State.map.removeLayer(m));
+  State.markers.drivers = [];
+  State.availableDrivers.forEach(d => {
+    if (!d.currentLocation) return;
+    const m = L.marker([d.currentLocation.lat, d.currentLocation.lng], {
+      icon: L.divIcon({ html: '<div style="background:#2563eb;width:24px;height:24px;border-radius:7px;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><path d="M5 11l1.5-4.5A1 1 0 0 1 7.5 6h9a1 1 0 0 1 1 .5L19 11"/><rect x="3" y="11" width="18" height="8" rx="2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>', className: '', iconSize:[24,24], iconAnchor:[12,12] })
+    }).addTo(State.map);
+    State.markers.drivers.push(m);
+  });
+}
+
+/* ============ DRIVER STATUS ============ */
+function checkDriverStatus() {
+  const d = State.driver;
+  const banner = $('driverPendingBanner');
+  if (!d) {
+    $('statusToggle').classList.remove('online', 'pending');
+    $('statusText').textContent = 'Offline';
+    $('statusSub').textContent = 'Taxi သမား အဖြစ် မှတ်ပုံတင်ပါ';
+    banner.classList.add('hidden');
+    return;
+  }
+  if (!d.isApproved) {
+    $('statusToggle').classList.remove('online');
+    $('statusToggle').classList.add('pending');
+    $('statusText').textContent = d.isRejected ? 'ငြင်းပယ်ခံရ' : 'အတည်ပြုချက် စောင့်နေသည်';
+    $('statusSub').textContent = d.isRejected ? 'Admin မှ ငြင်းပယ်ထားပါသည်' : 'Admin အတည်ပြုမှ Online လုပ်နိုင်ပါမည်';
+    banner.classList.remove('hidden');
+    if (d.isRejected) {
+      banner.innerHTML = `<div class="pending-banner" style="border-color:var(--danger);background:var(--danger-soft)">
+        <span class="ic" style="color:var(--danger)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></span>
+        <div><div class="ttl" style="color:var(--danger)">Admin မှ ငြင်းပယ်ထားပါသည်</div>
+        <div class="txt">Profile → Taxi အချက်အလက် ပြန်ပြင် → ပြန်တင်ပါ</div></div></div>`;
+    } else {
+      banner.innerHTML = `<div class="pending-banner">
+        <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+        <div><div class="ttl">Admin အတည်ပြုချက် စောင့်နေသည်</div>
+        <div class="txt">Admin မှ အတည်ပြုပြီးရင် သင့်အကောင့် Taxi သမား အဖြစ် အလိုအလျောက် ပြောင်းလဲပါမည်။</div></div></div>`;
+    }
+    $('onlineSwitch').classList.remove('on');
+    return;
+  }
+  banner.classList.add('hidden');
+  const online = ['available', 'busy'].includes(d.status);
+  State.isOnline = online;
+  if (online) {
+    $('statusToggle').classList.add('online'); $('statusToggle').classList.remove('pending');
+    $('onlineSwitch').classList.add('on');
+    const busy = d.status === 'busy';
+    $('statusText').textContent = busy ? 'ခရီး လုပ်နေသည်' : 'Online';
+    $('statusSub').textContent = busy ? 'ခရီး ပြီးအောင် စောင့်ပါ' : 'ခရီးသည် တောင်းဆိုမှုများ ကြည့်နေသည်';
+  } else {
+    $('statusToggle').classList.remove('online', 'pending');
+    $('onlineSwitch').classList.remove('on');
+    $('statusText').textContent = 'Offline';
+    $('statusSub').textContent = 'Online လုပ်ပြီး ခရီးသည် တောင်းဆိုမှုများ ကြည့်ပါ';
+  }
+  $('driverCoins').textContent = State.user?.coins || 0;
+  $('driverRides').textContent = d?.completedRides || 0;
+  $('driverRating').textContent = (d?.rating || 5).toFixed(1);
+  $('driverEarnings').textContent = fmt(d?.totalEarnings || 0);
+  $('driverCoinsWarning').classList.toggle('hidden', (State.user?.coins || 0) >= 5);
+}
+$('onlineSwitch').onclick = async () => {
+  if (!State.driver) { toast('Taxi သမား အဖြစ် အရင် မှတ်ပုံတင်ပါ', 'error'); return; }
+  if (!State.driver.isApproved) { toast('Admin အတည်ပြုချက် စောင့်ပါ', 'error'); return; }
+  if (State.driver.status === 'on_trip') { toast('ခရီး ပြီးမှ Offline လုပ်ပါ', 'error'); return; }
+  const newStatus = State.isOnline ? 'offline' : 'available';
+  let loc = null;
+  if (newStatus === 'available' && navigator.geolocation) {
+    try {
+      const p = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000 }));
+      loc = { lat: p.coords.latitude, lng: p.coords.longitude };
+    } catch {}
+  }
+  const r = await api('toggleOnline', { userId: State.user.id, status: newStatus, location: loc });
+  if (r.success) {
+    State.driver.status = newStatus;
+    checkDriverStatus();
+    toast(State.isOnline ? 'Online ဖြစ်ပြီ' : 'Offline ဖြစ်ပြီ', 'success');
+    if (State.isOnline) loadPendingRides();
+  } else toast(r.error, 'error');
+};
+$('refreshRidesBtn').onclick = () => loadPendingRides();
+async function loadPendingRides() {
+  if (!State.driver || !State.driver.isApproved) return;
+  const r = await api('getPendingRides', {}, { loading: false });
+  if (r.success) { State.pendingRides = r.rides || []; renderPendingRides(); }
+}
+function renderPendingRides() {
+  const c = $('pendingRides');
+  if (!State.pendingRides.length) {
+    c.innerHTML = `<div class="empty"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div>ခရီးသည် တောင်းဆိုမှု မရှိပါ</div></div>`;
+    return;
+  }
+  c.innerHTML = State.pendingRides.map(r => `
+    <div class="ride-card" onclick="acceptRide('${r.id}')">
+      <div class="h"><div class="f"><span>${fmt(r.estimatedCoins)}</span><small>ကျပ်</small></div><span class="pill pending">အသစ်</span></div>
+      <div class="ri"><span class="d g"></span><span class="t">${esc(r.pickup.address)}</span></div>
+      <div class="ri"><span class="d r"></span><span class="t">${esc(r.dropoff.address)}</span></div>
+      <div class="m"><span>📍 ${r.distance} km</span><span>⏱️ ${timeAgo(r.createdAt)}</span><span>👤 ${esc(r.riderName)}</span></div>
+    </div>`).join('');
+}
+async function acceptRide(rideId) {
+  const ok = await confirmDialog({ title:'ဒီခရီး လက်ခံမည်?', yes:'လက်ခံ' });
+  if (!ok) return;
+  const r = await api('acceptRide', { rideId, driverId: State.driver.id, userId: State.user.id });
+  if (!r.success) { toast(r.error, 'error'); return; }
+  toast('လက်ခံပြီးပါပြီ', 'success');
+  State.activeRide = r.ride;
+  State.driver.status = 'busy';
+  renderDriverActiveRide();
+  checkDriverStatus();
+  loadPendingRides();
+}
+window.acceptRide = acceptRide;
+function renderDriverActiveRide() {
+  const c = $('driverActiveRide');
+  if (!State.activeRide) { c.innerHTML = ''; return; }
+  const ride = State.activeRide;
+  let actions = '';
+  if (ride.status === 'accepted') actions = `<button class="btn primary btn-block" onclick="driverSetStatus('arriving')">ခရီးသည် ဆီ သွားနေသည်</button>`;
+  else if (ride.status === 'arriving') actions = `<button class="btn primary btn-block" onclick="driverSetStatus('in_progress')">ခရီး စတင်သည်</button>`;
+  else if (ride.status === 'in_progress') actions = `<div class="otp-box"><div class="lbl">ခရီးသည် OTP ကို မေးပါ</div><div class="code">${esc(ride.otp)}</div></div>`;
+  c.innerHTML = `<div class="active-ride">
+    <div class="dr">
+      <div class="av">${(ride.riderName||'R').charAt(0).toUpperCase()}</div>
+      <div class="info"><div class="name">${esc(ride.riderName || 'Rider')}</div><div class="sub">${esc(ride.riderPhone || '')}</div></div>
+      <a href="tel:${esc(ride.riderPhone)}" class="ic-btn" style="margin-right:.3rem"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+      <button class="ic-btn" onclick="openRideChat('${esc(ride.riderId)}','${esc(ride.riderName)}')"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+    </div>
+    <div class="route-sum">
+      <div class="ln"><span class="d g"></span><div class="t">${esc(ride.pickup.address)}</div></div>
+      <div class="ln"><span class="d r"></span><div class="t">${esc(ride.dropoff.address)}</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem">
+      <span style="font-size:.72rem;color:var(--text-3)">${ride.distance} km</span>
+      <span style="font-weight:800;font-size:1.1rem;color:var(--primary);font-family:var(--mm)">${fmt(ride.estimatedCoins)} ကျပ်</span>
+    </div>${actions}</div>`;
+}
+async function driverSetStatus(status) {
+  const r = await api('updateRideStatus', { rideId: State.activeRide.id, status, userId: State.user.id });
+  if (r.success) { State.activeRide = r.ride; renderDriverActiveRide(); toast('Status ပြောင်းပြီ', 'success'); }
+}
+window.driverSetStatus = driverSetStatus;
+
+/* ============ HISTORY ============ */
+async function loadMyRides() {
+  if (!State.user) return;
+  const role = State.isDriver ? 'driver' : 'rider';
+  const r = await api('getMyRides', { userId: State.user.id, role }, { loading: false });
+  if (r.success) { State.myRides = r.rides || []; renderRideHistory(); }
+  const ar = await api('getActiveRide', { userId: State.user.id, role }, { loading: false });
+  if (ar.success && ar.ride) {
+    State.activeRide = ar.ride;
+    if (State.isDriver) renderDriverActiveRide();
+    else renderActiveRide();
+  }
+}
+function renderRideHistory() {
+  const c = $('rideHistory');
+  if (!State.myRides.length) {
+    c.innerHTML = `<div class="empty"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div>မှတ်တမ်း မရှိသေးပါ</div></div>`;
+    return;
+  }
+  c.innerHTML = State.myRides.map(r => {
+    const lbl = { pending:'တောင်းဆို', accepted:'လက်ခံ', arriving:'လာ', in_progress:'ခရီး', completed:'ပြီး', cancelled:'ပယ်ဖျက်' }[r.status] || r.status;
+    const payLbl = r.paymentMethod === 'coins' ? '🪙 Coins' : r.paymentMethod === 'cash' ? '💵 ငွေသား' : '';
+    return `<div class="ride-card">
+      <div class="h"><span class="pill ${r.status}">${lbl}</span><div class="f"><span>${fmt(r.actualCoins || r.estimatedCoins)}</span><small>ကျပ်</small></div></div>
+      <div class="ri"><span class="d g"></span><span class="t">${esc(r.pickup.address)}</span></div>
+      <div class="ri"><span class="d r"></span><span class="t">${esc(r.dropoff.address)}</span></div>
+      <div class="m"><span>📍 ${r.distance} km</span><span>⏱️ ${timeAgo(r.createdAt)}</span>${payLbl ? `<span>${payLbl}</span>` : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ============ WALLET ============ */
+async function loadPackages() {
+  const r = await api('getPackages', {}, { loading: false });
+  if (r.success) { State.packages = r.packages || []; renderPackages(); }
+}
+function renderPackages() {
+  const c = $('packageGrid');
+  const coinPrice = Number(State.settings?.coinPriceMMK || 1000);
+  if (!State.packages.length) {
+    c.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="ic"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div>Package မရှိသေးပါ</div></div>';
+    return;
+  }
+  const sorted = [...State.packages].sort((a,b) => a.coins - b.coins);
+  c.innerHTML = sorted.map((p, i) => {
+    const rec = i === Math.floor(sorted.length / 2);
+    const imgHtml = p.imageUrl ? `<img src="${esc(p.imageUrl)}" onerror="this.style.display='none'" />` : '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M15 9h-4a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4H9"/></svg>';
+    return `<div class="pkg-card ${rec?'rec':''}" onclick="openBuy('${p.id}')">
+      ${rec ? '<div class="badge-top">POPULAR</div>' : ''}
+      <div class="img">${imgHtml}</div>
+      <div class="body">
+        <div class="name">${esc(p.name)}</div>
+        <div class="amount">${fmt(p.coins)}</div>
+        <div class="price">${fmt(p.price)} ကျပ်</div>
+        <div class="price" style="color:var(--primary);font-weight:700;margin-top:.15rem">${fmt(p.price/p.coins)} ကျပ်/coin</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function loadPurchases() {
+  const r = await api('getMyPurchases', { userId: State.user.id }, { loading: false });
+  if (r.success) { State.purchases = r.purchases || []; renderPurchases(); }
+}
+function renderPurchases() {
+  const c = $('purchaseHistory');
+  if (!State.purchases.length) {
+    c.innerHTML = '<div class="empty"><div class="ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div><div>ဝယ်ယူမှု မရှိသေးပါ</div></div>';
+    return;
+  }
+  c.innerHTML = State.purchases.map(p => {
+    const colors = { approved:'completed', rejected:'cancelled', pending:'pending' };
+    const labels = { approved:'အတည်ပြု', rejected:'ငြင်းပယ်', pending:'စောင့်ဆိုင်း' };
+    return `<div class="card" style="padding:.8rem;display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-weight:700;font-family:var(--mm);font-size:.85rem">${fmt(p.coins)} coins</div>
+        <div style="font-size:.7rem;color:var(--text-3);margin-top:.1rem">${fmt(p.price)} ကျပ် · ${timeAgo(p.createdAt)}</div></div>
+      <span class="pill ${colors[p.status] || 'pending'}">${labels[p.status] || p.status}</span>
+    </div>`;
+  }).join('');
+}
+function updateBuyInfo() {
+  const m = $('buyMethod').value;
+  const s = State.settings || {};
+  const phone = m === 'wave' ? (s.wavePhone || '09xxxxxxxxx') : (s.kpayPhone || '09xxxxxxxxx');
+  const name = m === 'wave' ? (s.waveName || '') : (s.kpayName || '');
+  const qr = m === 'wave' ? s.waveQr : s.kpayQr;
+  $('buyPhone').textContent = phone;
+  $('buyName').textContent = name ? `Account: ${name}` : '';
+  if (qr) { $('buyQrImg').src = qr; $('buyQrWrap').classList.remove('hidden'); }
+  else $('buyQrWrap').classList.add('hidden');
+}
+$('buyMethod').onchange = updateBuyInfo;
+function openBuy(pkgId) {
+  State.selectedPkg = State.packages.find(x => x.id === pkgId);
+  if (!State.selectedPkg) return;
+  $('buyPkgLabel').textContent = State.selectedPkg.name;
+  $('buyPkgCoins').textContent = State.selectedPkg.coins;
+  updateBuyInfo();
+  $('buyStep1').classList.remove('hidden');
+  $('buyStep2').classList.add('hidden');
+  $('buyModal').classList.add('open');
+}
+window.openBuy = openBuy;
+$('submitBuyBtn').onclick = async () => {
+  if (!State.selectedPkg) return;
+  btnLoad($('submitBuyBtn'), true);
+  const r = await api('buyCoins', { userId: State.user.id, packageId: State.selectedPkg.id, method: $('buyMethod').value });
+  btnLoad($('submitBuyBtn'), false);
+  if (!r.success) { toast(r.error, 'error'); return; }
+  $('buyStep1').classList.add('hidden');
+  $('buyStep2').classList.remove('hidden');
+  loadPurchases();
+};
+
+/* ============ PROFILE ============ */
+function renderProfile() {
+  try {
+    if (!State.user) return;
+    const av = $('profileAvatar');
+    if (State.user.profileImage) av.innerHTML = `<img src="${esc(State.user.profileImage)}"/>`;
+    else av.textContent = (State.user.name || '?').charAt(0).toUpperCase();
+    const bg = $('profileBg');
+    if (State.user.backgroundImage) bg.innerHTML = `<img src="${esc(State.user.backgroundImage)}"/>`;
+    else bg.innerHTML = '';
+    $('profileName').innerHTML = `${esc(State.user.name || 'User')} <span class="v"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>`;
+    $('profilePhone').textContent = State.user.phone || '-';
+    $('profRides').textContent = State.user.totalRides || 0;
+    $('profRating').textContent = (State.user.rating || 5).toFixed(1);
+    $('profCoins').textContent = fmt(State.user.coins || 0);
+    $('myCoinsHero').textContent = fmt(State.user.coins || 0);
+    const coinPrice = Number(State.settings?.coinPriceMMK || 1000);
+    $('coinsSub').textContent = `1 coin = ${fmt(coinPrice)} ကျပ်`;
+    $('headerSub').textContent = State.isAdmin ? 'Admin' : State.isDriver ? 'Taxi သမား' : (State.driver && !State.driver.isApproved ? 'အတည်ပြုချက် စောင့်' : 'ခရီးသည်');
+    if (State.isDriver) {
+      $('driverRegTitle').textContent = 'Taxi အချက်အလက် ပြင်';
+      $('driverRegSub').textContent = 'ကားအချက်အလက် ပြောင်းလဲရန်';
+    } else if (State.driver && !State.driver.isApproved) {
+      $('driverRegTitle').textContent = State.driver.isRejected ? 'မှတ်ပုံတင် ပြန်တင်မည်' : 'မှတ်ပုံတင် စောင့်နေသည်';
+      $('driverRegSub').textContent = State.driver.isRejected ? 'အချက်အလက် ပြင်ပြီး ပြန်တင်ပါ' : 'Admin အတည်ပြုချက် စောင့်နေပါ';
+    } else {
+      $('driverRegTitle').textContent = 'Taxi သမား မှတ်ပုံတင်မည်';
+      $('driverRegSub').textContent = 'ကားအချက်အလက် ထည့်သွင်းရန်';
+    }
+  } catch (err) { console.error('Profile error:', err); }
+}
+async function refreshUser() {
+  if (!State.user) return;
+  const r = await api('getUser', { userId: State.user.id }, { loading: false });
+  if (r.success) { State.user = r.user; renderProfile(); }
+  const dr = await api('getMyDriverProfile', { userId: State.user.id }, { loading: false });
+  if (dr.success && dr.driver) {
+    const wasApproved = State.isDriver;
+    State.driver = dr.driver;
+    State.isDriver = !!dr.driver.isApproved;
+    if (!wasApproved && State.isDriver) {
+      toast('Admin မှ Taxi သမား အတည်ပြုပြီးပါပြီ!', 'success');
+      renderTabBar();
+      if (State.currentView === 'driver') checkDriverStatus();
+    }
+  }
+}
+
+/* ============ EDIT PROFILE ============ */
+$('editProfileBtn').onclick = () => {
+  State.epAvatarUrl = State.user.profileImage || '';
+  State.epBgUrl = State.user.backgroundImage || '';
+  $('epName').value = State.user.name || '';
+  if (State.epBgUrl) {
+    $('epBgWrap').innerHTML = `<div class="upload-preview"><img src="${esc(State.epBgUrl)}" /><button type="button" class="rm" onclick="removeEpBg()"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
+    $('epBgWrap').onclick = null;
+  } else resetEpBgZone();
+  if (State.epAvatarUrl) {
+    $('epAvatarWrap').innerHTML = `<div class="upload-preview"><img src="${esc(State.epAvatarUrl)}" /><button type="button" class="rm" onclick="removeEpAvatar()"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
+    $('epAvatarWrap').onclick = null;
+  } else resetEpAvatarZone();
+  $('editProfileModal').classList.add('open');
+};
+function resetEpBgZone() {
+  $('epBgWrap').innerHTML = `<div class="upload-zone" id="epBgZone"><div class="uz-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div><p>နောက်ခံ ပုံ တင်ရန် နှိပ်ပါ</p><small>PNG / JPG · Max 5MB</small></div>`;
+  $('epBgZone').onclick = () => $('epBgInput').click();
+}
+function resetEpAvatarZone() {
+  $('epAvatarWrap').innerHTML = `<div class="upload-zone" id="epAvatarZone"><div class="uz-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2"/></svg></div><p>Profile ပုံ တင်ရန် နှိပ်ပါ</p><small>PNG / JPG · Max 5MB</small></div>`;
+  $('epAvatarZone').onclick = () => $('epAvatarInput').click();
+}
+window.removeEpBg = () => { State.epBgUrl = ''; resetEpBgZone(); };
+window.removeEpAvatar = () => { State.epAvatarUrl = ''; resetEpAvatarZone(); };
+$('editProfileModal').addEventListener('click', e => {
+  if (e.target.id === 'editProfileModal') return;
+});
+
+// Initialize zone clicks when modal opens
+const origEditOpen = $('editProfileBtn').onclick;
+document.addEventListener('click', e => {
+  if (e.target.closest('#epBgZone')) $('epBgInput').click();
+  if (e.target.closest('#epAvatarZone')) $('epAvatarInput').click();
+});
+
+function uploadWithProgress(inputId, wrapId, kind, setUrl, previewFn) {
+  const input = $(inputId);
+  input.addEventListener('change', async e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (!f.type.startsWith('image/')) { toast('ပုံ ဖိုင်သာ ရွေးပါ', 'error'); e.target.value=''; return; }
+    if (f.size > 5 * 1024 * 1024) { toast('ပုံ 5MB ကျော်လွန်ပါ', 'error'); e.target.value=''; return; }
+    $(wrapId).innerHTML = `<div class="upload-progress"><div style="font-size:.78rem;color:var(--text-2);font-family:var(--mm)">ပုံ တင်နေသည်...</div><div class="bar"><div class="fill" id="upFill" style="width:0%"></div></div><div class="pct" id="upPct">0%</div></div>`;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      let pct = 0;
+      const prog = setInterval(() => {
+        pct = Math.min(90, pct + Math.random() * 8);
+        const fill = $('upFill'), p = $('upPct');
+        if (fill) fill.style.width = pct + '%';
+        if (p) p.textContent = Math.round(pct) + '%';
+      }, 100);
+      const r = await api('upload', { base64: reader.result, kind }, { loading: false });
+      clearInterval(prog);
+      if (r.success) {
+        setUrl(r.url);
+        previewFn(r.url);
+        toast('ပုံ တင်ပြီး', 'success');
+      } else { toast(r.error || 'Upload failed', 'error'); resetEpBgZone(); resetEpAvatarZone(); }
+    };
+    reader.readAsDataURL(f);
+    e.target.value = '';
+  });
+}
+uploadWithProgress('epAvatarInput', 'epAvatarWrap', 'profile',
+  url => State.epAvatarUrl = url,
+  url => {
+    $('epAvatarWrap').innerHTML = `<div class="upload-preview"><img src="${esc(url)}" /><button type="button" class="rm" onclick="removeEpAvatar()"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
+  }
+);
+uploadWithProgress('epBgInput', 'epBgWrap', 'cover',
+  url => State.epBgUrl = url,
+  url => {
+    $('epBgWrap').innerHTML = `<div class="upload-preview"><img src="${esc(url)}" /><button type="button" class="rm" onclick="removeEpBg()"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
+  }
+);
+$('saveProfileBtn').onclick = async () => {
+  btnLoad($('saveProfileBtn'), true);
+  const r = await api('updateProfile', {
+    userId: State.user.id,
+    name: $('epName').value.trim() || State.user.name,
+    profileImage: State.epAvatarUrl,
+    backgroundImage: State.epBgUrl,
+  }, { label: 'သိမ်းနေသည်...' });
+  btnLoad($('saveProfileBtn'), false);
+  if (r.success) {
+    State.user = r.user;
+    renderProfile();
+    $('editProfileModal').classList.remove('open');
+    toast('သိမ်းပြီး', 'success');
+  } else toast(r.error, 'error');
+};
+
+/* ============ DRIVER REGISTER ============ */
+$('driverRegisterBtn').onclick = () => {
+  if (!State.driver) {
+    $('drCarModel').value = ''; $('drCarPlate').value = ''; $('drCarColor').value = '';
+  } else {
+    $('drCarModel').value = State.driver.carModel || '';
+    $('drCarPlate').value = State.driver.carPlate || '';
+    $('drCarColor').value = State.driver.carColor || '';
+  }
+  $('driverRegModal').classList.add('open');
+};
+$('submitDriverReg').onclick = async () => {
+  const cm = $('drCarModel').value.trim();
+  const cp = $('drCarPlate').value.trim();
+  const cc = $('drCarColor').value.trim();
+  if (!cm || !cp) { toast('ကားအချက်အလက် ဖြည့်ပါ', 'error'); return; }
+  btnLoad($('submitDriverReg'), true);
+  const r = await api('driverRegister', { userId: State.user.id, carModel: cm, carPlate: cp, carColor: cc }, { label: 'မှတ်ပုံတင်နေသည်...' });
+  btnLoad($('submitDriverReg'), false);
+  if (!r.success) { toast(r.error, 'error'); return; }
+  State.driver = r.driver;
+  State.isDriver = !!r.driver.isApproved;
+  $('driverRegModal').classList.remove('open');
+  renderProfile();
+  if (r.driver.isApproved) {
+    renderTabBar();
+    switchView('driver');
+    checkDriverStatus();
+    toast('Taxi သမား ဖြစ်ပါပြီ', 'success');
+  } else {
+    switchView('driver');
+    checkDriverStatus();
+    toast('မှတ်ပုံတင်ပြီး — Admin အတည်ပြုချက် စောင့်ပါ', 'info');
+  }
+};
+
+/* ============ LOGOUT ============ */
+$('logoutBtn').onclick = async () => {
+  const ok = await confirmDialog({ title:'Logout ထွက်မည်?', yes:'ထွက်မည်', danger:true });
+  if (!ok) return;
+  stopAllPolling();
+  clearSession();
+  location.reload();
+};
+
+/* ============ NOTIFICATIONS ============ */
+$('notifBtn').onclick = () => $('notifModal').classList.add('open');
+function renderNotifications() {
+  const c = $('notifList');
+  if (!State.notifications.length) {
+    c.innerHTML = '<div class="empty"><div class="ic"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg></div><div>အသိပေးချက် မရှိပါ</div></div>';
+    return;
+  }
+  c.innerHTML = State.notifications.map(n => `
+    <div class="menu-item" onclick="markNotifRead('${n.id}')" style="${n.isRead ? '' : 'background:var(--primary-soft)'}">
+      <div class="mi" style="background:var(--primary-soft);color:var(--primary)">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </div>
+      <div class="mb">
+        <div class="mt">${esc(n.title)}</div>
+        <div class="ms">${esc(n.content)}</div>
+        <div style="font-size:.63rem;color:var(--text-3);margin-top:.15rem">${timeAgo(n.createdAt)}</div>
+      </div>
+    </div>`).join('');
+}
+async function markNotifRead(id) {
+  await api('markRead', { notificationId: id }, { loading: false });
+  const n = State.notifications.find(x => x.id === id);
+  if (n) n.isRead = true;
+  renderNotifications();
+  updateNotifBadge();
+}
+window.markNotifRead = markNotifRead;
+function updateNotifBadge() {
+  const u = State.notifications.filter(n => !n.isRead).length;
+  const b = $('notifBadge');
+  if (u > 0) { b.textContent = u > 9 ? '9+' : u; b.classList.add('show'); }
+  else b.classList.remove('show');
+}
+
+/* ============ CHAT ============ */
+async function openRideChat(otherUserId, otherName) {
+  if (!State.activeRide) { toast('Active ride မရှိပါ', 'error'); return; }
+  State.currentChatRideId = State.activeRide.id;
+  State.currentChatUser = otherUserId;
+  $('chatName').textContent = otherName;
+  $('chatSub').textContent = 'Ride #' + State.activeRide.id.slice(-6);
+  $('chatAvatar').textContent = (otherName || '?').charAt(0).toUpperCase();
+  $('chatPanel').classList.add('open');
+  await loadChatMessages();
+  if (State.chatPoll) clearInterval(State.chatPoll);
+  State.chatPoll = setInterval(loadChatMessages, 3500);
+}
+window.openRideChat = openRideChat;
+async function loadChatMessages() {
+  if (!State.currentChatRideId) return;
+  const r = await api('getMessages', { rideId: State.currentChatRideId, userId: State.user.id }, { loading: false });
+  if (!r.success) return;
+  const c = $('chatMessages');
+  const atBottom = c.scrollTop + c.clientHeight >= c.scrollHeight - 60;
+  if (!r.messages.length) {
+    c.innerHTML = '<div class="empty"><div class="ic"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div>မက်ဆေ့ခ်ျ မရှိပါ</div></div>';
+  } else {
+    c.innerHTML = r.messages.map(m => {
+      const mine = m.fromUserId === State.user.id;
+      return `<div class="msg ${mine ? 'mine' : 'theirs'}">
+        <div class="content-wrap">
+          <div class="bub">${esc(m.content)}</div>
+          <div class="meta">${timeShort(m.createdAt)}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  if (atBottom) c.scrollTop = c.scrollHeight;
+}
+$('chatBackBtn').onclick = () => {
+  $('chatPanel').classList.remove('open');
+  if (State.chatPoll) { clearInterval(State.chatPoll); State.chatPoll = null; }
+};
+$('chatSendBtn').onclick = sendChatMessage;
+$('chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendChatMessage(); }});
+async function sendChatMessage() {
+  const content = $('chatInput').value.trim();
+  if (!content) return;
+  $('chatInput').value = '';
+  const r = await api('sendMessage', { rideId: State.currentChatRideId, fromUserId: State.user.id, toUserId: State.currentChatUser, content }, { loading: false });
+  if (!r.success) { toast(r.error, 'error'); return; }
+  loadChatMessages();
+}
+
+/* ============ GROUP CHAT ============ */
+function openGroupChat() {
+  if (!State.isDriver) { toast('Taxi သမား များ အတွက်သာ', 'error'); return; }
+  $('groupChatPanel').classList.add('open');
+  loadGroupMessages();
+  if (State.groupPoll) clearInterval(State.groupPoll);
+  State.groupPoll = setInterval(loadGroupMessages, 4500);
+}
+$('groupChatBackBtn').onclick = () => {
+  $('groupChatPanel').classList.remove('open');
+  if (State.groupPoll) { clearInterval(State.groupPoll); State.groupPoll = null; }
+};
+async function loadGroupMessages() {
+  const r = await api('getGroupMessages', {}, { loading: false });
+  if (!r.success) return;
+  const c = $('groupMessages');
+  const atBottom = c.scrollTop + c.clientHeight >= c.scrollHeight - 60;
+  if (!r.messages.length) {
+    c.innerHTML = '<div class="empty"><div class="ic"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div>မက်ဆေ့ခ်ျ မရှိပါ — စတင် စကားပြောပါ</div></div>';
+  } else {
+    c.innerHTML = r.messages.map(m => {
+      const mine = m.fromUserId === State.user.id;
+      const initial = (m.fromName || 'D').charAt(0).toUpperCase();
+      const av = m.fromImage ? `<img src="${esc(m.fromImage)}"/>` : initial;
+      return `<div class="msg ${mine ? 'mine' : 'theirs'}">
+        <div class="sender-av">${av}</div>
+        <div class="content-wrap">
+          ${!mine ? `<div class="sender-name">${esc(m.fromName || 'Driver')}</div>` : ''}
+          <div class="bub">${esc(m.content)}</div>
+          <div class="meta">${timeShort(m.createdAt)}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  if (atBottom) c.scrollTop = c.scrollHeight;
+}
+$('groupSendBtn').onclick = sendGroupMessage;
+$('groupInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendGroupMessage(); }});
+async function sendGroupMessage() {
+  const content = $('groupInput').value.trim();
+  if (!content) return;
+  $('groupInput').value = '';
+  const c = $('groupMessages');
+  const tempId = 'tmp_' + Date.now();
+  const initial = (State.user.name || 'D').charAt(0).toUpperCase();
+  const av = State.user.profileImage ? `<img src="${esc(State.user.profileImage)}"/>` : initial;
+  const tempMsg = document.createElement('div');
+  tempMsg.className = 'msg mine pending';
+  tempMsg.id = tempId;
+  tempMsg.innerHTML = `<div class="sender-av">${av}</div>
+    <div class="content-wrap">
+      <div class="bub">${esc(content)}</div>
+      <div class="meta" style="color:var(--primary);font-weight:600">ပို့နေသည်...</div>
+      <div class="sending-bar"><div class="sending-fill"></div></div>
+    </div>`;
+  c.appendChild(tempMsg);
+  c.scrollTop = c.scrollHeight;
+  const r = await api('sendGroupMessage', { userId: State.user.id, content }, { loading: false });
+  const el = $(tempId);
+  if (r.success) {
+    if (el) el.remove();
+    loadGroupMessages();
+  } else {
+    if (el) el.innerHTML = `<div class="sender-av">${av}</div>
+      <div class="content-wrap">
+        <div class="bub" style="background:var(--danger-soft);color:var(--danger)">${esc(content)}</div>
+        <div class="meta" style="color:var(--danger);font-weight:700">✕ ပို့မရပါ</div>
+      </div>`;
+    toast('ပို့မရပါ', 'error');
+  }
+}
+
+/* ============ ADMIN ============ */
+qa('#adminTabs button').forEach(b => b.onclick = () => {
+  qa('#adminTabs button').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  ['dashboard','users','rides','drivers','purchases','packages','settings'].forEach(t => {
+    const el = $('atab' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (el) el.classList.toggle('hidden', t !== b.dataset.atab);
+  });
+});
+async function loadAdminData() {
+  const r = await api('adminBootstrap', {}, { label: 'Admin data ရယူနေသည်...' });
+  if (!r.success) { toast(r.error, 'error'); return; }
+  State.adminData = r;
+  State.settings = r.settings || {};
+  renderAdminDashboard();
+  renderAdminUsers(r.users || []);
+  renderAdminRides(r.rides || []);
+  renderAdminDrivers(r.drivers || []);
+  renderAdminPurchases(r.purchases || []);
+  renderAdminPackages(r.packages || []);
+  renderAdminSettings();
+  updatePendingDriverBadge();
+}
+function updatePendingDriverBadge() {
+  const pending = (State.adminData?.drivers || []).filter(d => !d.isApproved && !d.isRejected).length;
+  const b = $('pendingDriverBadge');
+  if (pending > 0) { b.textContent = pending; b.classList.remove('hidden'); }
+  else b.classList.add('hidden');
+}
+function renderAdminDashboard() {
+  const d = State.adminData || {};
+  const totalCoins = (d.users || []).reduce((s, u) => s + (u.coins || 0), 0);
+  const pendingP = (d.purchases || []).filter(p => p.status === 'pending').length;
+  const pendingD = (d.drivers || []).filter(x => !x.isApproved && !x.isRejected).length;
+  const activeRides = (d.rides || []).filter(r => ['pending','accepted','arriving','in_progress'].includes(r.status)).length;
+  $('atabDashboard').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="iw" style="background:var(--primary-soft);color:var(--primary)"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        <div class="val">${d.users?.length || 0}</div><div class="lbl">အသုံးပြုသူ</div></div>
+      <div class="stat-card"><div class="iw" style="background:var(--warning-soft);color:var(--warning)"><svg viewBox="0 0 24 24"><path d="M5 11l1.5-4.5A1 1 0 0 1 7.5 6h9a1 1 0 0 1 1 .5L19 11"/><rect x="3" y="11" width="18" height="8" rx="2"/></svg></div>
+        <div class="val">${d.drivers?.length || 0}</div><div class="lbl">Taxi သမား</div></div>
+      <div class="stat-card"><div class="iw" style="background:var(--warning-soft);color:var(--warning)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="val">${pendingD}</div><div class="lbl">Driver Requests</div></div>
+      <div class="stat-card"><div class="iw" style="background:var(--primary-soft);color:var(--primary)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <div class="val">${activeRides}</div><div class="lbl">Active Rides</div></div>
+      <div class="stat-card"><div class="iw" style="background:var(--warning-soft);color:var(--warning)"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div>
+        <div class="val">${pendingP}</div><div class="lbl">Pending Purchases</div></div>
+      <div class="stat-card" style="grid-column:1/-1"><div class="iw" style="background:var(--success-soft);color:var(--success)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M15 9h-4a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4H9"/></svg></div>
+        <div class="val">${fmt(totalCoins)}</div><div class="lbl">စုစုပေါင်း Coins (${fmt(totalCoins * Number(State.settings?.coinPriceMMK || 1000))} ကျပ်)</div></div>
+    </div>
+    <div class="card">
+      <div style="font-family:var(--mm);font-weight:700;font-size:.87rem;margin-bottom:.7rem">စနစ် ဆက်တင်</div>
+      <div class="field"><label>Fare Per KM (ကျပ်)</label><input type="number" id="adminFarePerKm" value="${State.settings?.farePerKm || 500}" /></div>
+      <div class="field"><label>Driver Signup Bonus (Coins)</label><input type="number" id="adminBonus" value="${State.settings?.driverSignupBonus || 30}" /></div>
+      <div class="field"><label>Daily Fee (Coins/ရက်)</label><input type="number" id="adminDailyFee" value="${State.settings?.dailyFee || 1}" /></div>
+      <div class="field"><label>1 Coin = ? ကျပ်</label><input type="number" id="adminCoinPrice" value="${State.settings?.coinPriceMMK || 1000}" /></div>
+      <button class="btn primary btn-block" onclick="adminSaveQuick()">သိမ်းမည်</button>
+    </div>`;
+}
+async function adminSaveQuick() {
+  const s = {
+    farePerKm: Number($('adminFarePerKm').value) || 500,
+    driverSignupBonus: Number($('adminBonus').value) || 30,
+    dailyFee: Number($('adminDailyFee').value) || 1,
+    coinPriceMMK: Number($('adminCoinPrice').value) || 1000
+  };
+  const r = await api('adminSaveSettings', { settings: s });
+  if (r.success) { State.settings = { ...State.settings, ...s }; toast('သိမ်းပြီး', 'success'); }
+}
+window.adminSaveQuick = adminSaveQuick;
+function renderAdminUsers(users) {
+  $('atabUsers').innerHTML = users.map(u => `
+    <div class="admin-item">
+      <div class="row">
+        <div style="flex:1;min-width:0">
+          <div class="title">${esc(u.name)} ${u.isBanned ? '<span style="color:var(--danger);font-size:.7rem">[BANNED]</span>' : ''}</div>
+          <div class="sub"><b>${esc(u.phone)}</b> · ${u.role} · 🪙 <b>${u.coins || 0}</b></div>
+        </div>
+        <div class="actions">
+          <button class="coins" onclick="adminOpenCoinModal('${u.id}','${esc(u.name)}',${u.coins||0})">Coins</button>
+          <button class="${u.isBanned ? 'approve' : 'reject'}" onclick="adminBan('${u.id}', ${!u.isBanned})">${u.isBanned ? 'Unban' : 'Ban'}</button>
+        </div>
+      </div>
+    </div>`).join('') || '<div class="empty">Users မရှိပါ</div>';
+}
+function renderAdminRides(rides) {
+  $('atabRides').innerHTML = rides.map(r => `
+    <div class="admin-item">
+      <div class="title">Ride #${r.id.slice(-6)} · <span class="pill ${r.status}">${r.status}</span></div>
+      <div class="sub">${esc(r.pickup.address)} → ${esc(r.dropoff.address)}</div>
+      <div class="sub">${fmt(r.actualCoins || r.estimatedCoins)} ကျပ် · ${r.distance}km · ${timeAgo(r.createdAt)}${r.paymentMethod ? ' · ' + (r.paymentMethod === 'coins' ? '🪙 Coins' : '💵 Cash') : ''}</div>
+    </div>`).join('') || '<div class="empty">Rides မရှိပါ</div>';
+}
+function renderAdminDrivers(drivers) {
+  const pending = drivers.filter(d => !d.isApproved && !d.isRejected);
+  const approved = drivers.filter(d => d.isApproved);
+  const rejected = drivers.filter(d => d.isRejected);
+
+  let html = '';
+  if (pending.length) {
+    html += `<div style="font-family:var(--mm);font-weight:700;font-size:.85rem;margin-bottom:.5rem;color:var(--warning)">⏳ အတည်ပြုချက် စောင့်နေသည် (${pending.length})</div>`;
+    html += pending.map(d => `
+      <div class="admin-item pending">
+        <div style="display:flex;gap:.7rem;align-items:flex-start">
+          <div style="width:48px;height:48px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1px solid var(--border)">
+            ${d.userImage ? `<img src="${esc(d.userImage)}" style="width:100%;height:100%;object-fit:cover"/>` : '<span style="font-size:1.1rem;font-weight:700">' + (d.userName||'D').charAt(0).toUpperCase() + '</span>'}
+          </div>
+          <div style="flex:1;min-width:0">
+            <div class="title">${esc(d.userName || 'Driver')}</div>
+            <div class="sub">📱 <b>${esc(d.userPhone || '')}</b> · 🪙 ${d.userCoins || 0}</div>
+            <div class="sub">🚗 ${esc(d.carModel)} · ${esc(d.carPlate)} · ${esc(d.carColor || '')}</div>
+            <div class="sub">📅 ${timeAgo(d.createdAt)}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:.4rem;margin-top:.7rem">
+          <button class="btn success sm" onclick="adminApproveDriver('${d.id}', true)" style="flex:1">✓ အတည်ပြု</button>
+          <button class="btn danger sm" onclick="adminApproveDriver('${d.id}', false)" style="flex:1">✕ ငြင်းပယ်</button>
+        </div>
+      </div>`).join('');
+  }
+
+  if (approved.length) {
+    html += `<div style="font-family:var(--mm);font-weight:700;font-size:.85rem;margin:.7rem 0 .5rem;color:var(--success)">✓ အတည်ပြုပြီး (${approved.length})</div>`;
+    html += approved.map(d => `
+      <div class="admin-item">
+        <div class="row">
+          <div style="flex:1;min-width:0">
+            <div class="title">${esc(d.userName || 'Driver')} · <span class="pill ${d.status === 'available' ? 'approved' : d.status === 'busy' ? 'pending' : 'cancelled'}">${d.status}</span></div>
+            <div class="sub">📱 ${esc(d.userPhone || '')} · 🪙 ${d.userCoins || 0}</div>
+            <div class="sub">🚗 ${esc(d.carModel || '')} · ${esc(d.carPlate || '')}</div>
+            <div class="sub">⭐ ${(d.rating||5).toFixed(1)} · ခရီး ${d.completedRides || 0} · ဝင်ငွေ ${fmt(d.totalEarnings || 0)}</div>
+          </div>
+          <div class="actions">
+            <button class="reject" onclick="adminApproveDriver('${d.id}', false)">Revoke</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  if (rejected.length) {
+    html += `<div style="font-family:var(--mm);font-weight:700;font-size:.85rem;margin:.7rem 0 .5rem;color:var(--danger)">✕ ငြင်းပယ်ပြီး (${rejected.length})</div>`;
+    html += rejected.map(d => `
+      <div class="admin-item" style="opacity:.7">
+        <div class="row">
+          <div style="flex:1">
+            <div class="title">${esc(d.userName || 'Driver')}</div>
+            <div class="sub">📱 ${esc(d.userPhone || '')} · 🚗 ${esc(d.carModel || '')}</div>
+          </div>
+          <div class="actions"><button class="approve" onclick="adminApproveDriver('${d.id}', true)">Approve</button></div>
+        </div>
+      </div>`).join('');
+  }
+
+  $('atabDrivers').innerHTML = html || '<div class="empty">Drivers မရှိပါ</div>';
+}
+async function adminApproveDriver(driverId, approved) {
+  const ok = await confirmDialog({
+    title: approved ? 'ဒီ Taxi သမားကို အတည်ပြုမည်?' : 'ငြင်းပယ်မည်?',
+    message: approved ? 'အတည်ပြုပြီးရင် Online လုပ်နိုင်ပြီး 30 coins လက်ဆောင် ရပါမည်။' : 'Admin မှ ငြင်းပယ်ပါမည်။',
+    yes: approved ? 'အတည်ပြု' : 'ငြင်းပယ်',
+    danger: !approved
+  });
+  if (!ok) return;
+  const r = await api('adminApproveDriver', { driverId, approved });
+  if (r.success) {
+    toast(approved ? 'အတည်ပြုပြီး' : 'ငြင်းပယ်ပြီး', 'success');
+    loadAdminData();
+  } else toast(r.error, 'error');
+}
+window.adminApproveDriver = adminApproveDriver;
+function renderAdminPurchases(purchases) {
+  $('atabPurchases').innerHTML = purchases.map(p => {
+    const colors = { approved:'var(--success)', rejected:'var(--danger)', pending:'var(--warning)' };
+    return `<div class="admin-item">
+      <div class="row">
+        <div style="flex:1;min-width:0">
+          <div class="title">${esc(p.userName || 'User')} · 🪙 ${p.coins}</div>
+          <div class="sub">📱 ${esc(p.userPhone || '')}<br>${fmt(p.price)} ကျပ် · ${p.method.toUpperCase()} · <span style="color:${colors[p.status]};font-weight:700">${p.status.toUpperCase()}</span></div>
+        </div>
+        ${p.status === 'pending' ? `<div class="actions"><button class="approve" onclick="adminPurchase('${p.id}', 'approved')">✓</button><button class="reject" onclick="adminPurchase('${p.id}', 'rejected')">✕</button></div>` : ''}
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty">Purchases မရှိပါ</div>';
+}
+function renderAdminPackages(packages) {
+  $('atabPackages').innerHTML = `
+    <button class="btn primary btn-block" onclick="adminOpenPkgModal()" style="margin-bottom:.8rem">
+      <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Package အသစ်
+    </button>
+    ${packages.map(p => `
+      <div class="admin-item">
+        <div class="row" style="align-items:center">
+          <div style="width:48px;height:48px;border-radius:9px;background:var(--card-2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+            ${p.imageUrl ? `<img src="${esc(p.imageUrl)}" style="width:100%;height:100%;object-fit:cover" />` : '<svg viewBox="0 0 24 24" style="width:24px;height:24px;stroke:var(--primary);fill:none;stroke-width:1.5"><circle cx="12" cy="12" r="10"/></svg>'}
+          </div>
+          <div style="flex:1;min-width:0;margin-left:.6rem">
+            <div class="title">${esc(p.name)}</div>
+            <div class="sub">🪙 ${p.coins} coins · ${fmt(p.price)} ကျပ်</div>
+          </div>
+          <div class="actions">
+            <button class="edit" onclick="adminEditPkg('${p.id}')">Edit</button>
+            <button class="reject" onclick="adminDelPkg('${p.id}')">Del</button>
+          </div>
+        </div>
+      </div>`).join('') || '<div class="empty">Packages မရှိပါ</div>'}`;
+}
+function renderAdminSettings() {
+  const s = State.settings || {};
+  $('atabSettings').innerHTML = `
+    <div class="card">
+      <div style="font-family:var(--mm);font-weight:700;font-size:.87rem;margin-bottom:.7rem">💙 KPay အချက်အလက်</div>
+      <div class="field"><label>KPay ဖုန်းနံပါတ်</label><input id="setKpayPhone" value="${esc(s.kpayPhone || '')}" /></div>
+      <div class="field"><label>KPay အကောင့်နာမည်</label><input id="setKpayName" value="${esc(s.kpayName || '')}" /></div>
+      <div class="field">
+        <label>KPay QR Code</label>
+        <div id="kpayQrWrap">
+          ${s.kpayQr
+            ? `<div class="upload-preview"><img src="${esc(s.kpayQr)}" /><button type="button" class="rm" onclick="removeAdminQr('kpayQr')"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`
+            : `<div class="upload-zone" id="kpayQrZone"><div class="uz-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div><p>KPay QR Code ပုံ တင်ရန် နှိပ်ပါ</p><small>PNG / JPG · Max 5MB</small></div>`}
+        </div>
+        <input type="file" id="kpayQrInput" accept="image/*" class="hidden" />
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:var(--mm);font-weight:700;font-size:.87rem;margin-bottom:.7rem">💛 Wave Money အချက်အလက်</div>
+      <div class="field"><label>Wave ဖုန်းနံပါတ်</label><input id="setWavePhone" value="${esc(s.wavePhone || '')}" /></div>
+      <div class="field"><label>Wave အကောင့်နာမည်</label><input id="setWaveName" value="${esc(s.waveName || '')}" /></div>
+      <div class="field">
+        <label>Wave QR Code</label>
+        <div id="waveQrWrap">
+          ${s.waveQr
+            ? `<div class="upload-preview"><img src="${esc(s.waveQr)}" /><button type="button" class="rm" onclick="removeAdminQr('waveQr')"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`
+            : `<div class="upload-zone" id="waveQrZone"><div class="uz-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div><p>Wave QR Code ပုံ တင်ရန် နှိပ်ပါ</p><small>PNG / JPG · Max 5MB</small></div>`}
+        </div>
+        <input type="file" id="waveQrInput" accept="image/*" class="hidden" />
+      </div>
+    </div>
+    <div class="card">
+      <div class="field"><label>Payment Note</label><textarea id="setPayNote">${esc(s.paymentNote || '')}</textarea></div>
+      <button class="btn primary btn-block" onclick="adminSaveFull()">သိမ်းမည်</button>
+    </div>`;
+}
+window.removeAdminQr = async (key) => {
+  const ok = await confirmDialog({ title: 'QR Code ဖျက်မည်?', yes:'ဖျက်', danger:true });
+  if (!ok) return;
+  const settings = { [key]: '' };
+  const r = await api('adminSaveSettings', { settings });
+  if (r.success) { State.settings = { ...State.settings, ...settings }; toast('ဖျက်ပြီး', 'success'); renderAdminSettings(); }
+};
+async function adminSaveFull() {
+  const s = {
+    kpayPhone: $('setKpayPhone').value.trim(),
+    kpayName: $('setKpayName').value.trim(),
+    wavePhone: $('setWavePhone').value.trim(),
+    waveName: $('setWaveName').value.trim(),
+    paymentNote: $('setPayNote').value.trim()
+  };
+  const r = await api('adminSaveSettings', { settings: s });
+  if (r.success) { State.settings = { ...State.settings, ...s }; toast('သိမ်းပြီး', 'success'); }
+}
+window.adminSaveFull = adminSaveFull;
+
+// Admin QR upload handlers
+function setupAdminQrUpload(inputId, wrapId, key) {
+  const input = $(inputId);
+  if (!input) return;
+  input.addEventListener('change', async e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (!f.type.startsWith('image/')) { toast('ပုံ ဖိုင်သာ', 'error'); e.target.value=''; return; }
+    if (f.size > 5 * 1024 * 1024) { toast('5MB ကျော်လွန်', 'error'); e.target.value=''; return; }
+    $(wrapId).innerHTML = `<div class="upload-progress"><div style="font-size:.78rem;color:var(--text-2)">ပုံ တင်နေသည်...</div><div class="bar"><div class="fill" id="qrFill" style="width:0%"></div></div><div class="pct" id="qrPct">0%</div></div>`;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      let pct = 0;
+      const prog = setInterval(() => {
+        pct = Math.min(90, pct + Math.random() * 8);
+        const fill = $('qrFill'), p = $('qrPct');
+        if (fill) fill.style.width = pct + '%';
+        if (p) p.textContent = Math.round(pct) + '%';
+      }, 100);
+      const r = await api('upload', { base64: reader.result, kind: 'qr' }, { loading: false });
+      clearInterval(prog);
+      if (r.success) {
+        const settings = { [key]: r.url };
+        const sr = await api('adminSaveSettings', { settings });
+        if (sr.success) {
+          State.settings = { ...State.settings, ...settings };
+          toast('QR တင်ပြီး', 'success');
+          renderAdminSettings();
+          setTimeout(() => {
+            const newInput = $(inputId);
+            if (newInput) setupAdminQrUpload(inputId, wrapId, key);
+          }, 100);
+        }
+      } else { toast(r.error || 'Upload failed', 'error'); renderAdminSettings(); }
+    };
+    reader.readAsDataURL(f);
+    e.target.value = '';
+  });
+}
+// Wire on settings tab click
+document.addEventListener('click', e => {
+  if (e.target.closest('#kpayQrZone')) {
+    const input = $('kpayQrInput');
+    if (input) input.click();
+  }
+  if (e.target.closest('#waveQrZone')) {
+    const input = $('waveQrInput');
+    if (input) input.click();
+  }
+});
+// Setup after render
+const _origRenderSettings = renderAdminSettings;
+renderAdminSettings = function() {
+  _origRenderSettings.call(this);
+  setupAdminQrUpload('kpayQrInput', 'kpayQrWrap', 'kpayQr');
+  setupAdminQrUpload('waveQrInput', 'waveQrWrap', 'waveQr');
+};
+
+async function adminBan(userId, banned) {
+  await api('adminBanUser', { userId, banned });
+  toast(banned ? 'Ban ပြီ' : 'Unban ပြီ', 'success');
+  loadAdminData();
+}
+window.adminBan = adminBan;
+async function adminPurchase(purchaseId, status) {
+  await api('adminUpdatePurchase', { purchaseId, status });
+  toast(status === 'approved' ? 'အတည်ပြုပြီ' : 'ငြင်းပယ်ပြီ', 'success');
+  loadAdminData();
+}
+window.adminPurchase = adminPurchase;
+function adminOpenCoinModal(userId, name, balance) {
+  State.adminCoinUser = userId;
+  $('adminCoinUserName').textContent = name;
+  $('adminCoinUserBalance').textContent = fmt(balance);
+  $('adminCoinAmount').value = '';
+  $('adminCoinReason').value = '';
+  $('adminCoinModal').classList.add('open');
+}
+window.adminOpenCoinModal = adminOpenCoinModal;
+$('adminCoinAdd').onclick = async () => {
+  const a = Number($('adminCoinAmount').value);
+  if (!a || a <= 0) { toast('အရေအတွက် ရိုက်ပါ', 'error'); return; }
+  await adjustCoins(a);
+};
+$('adminCoinDeduct').onclick = async () => {
+  const a = Number($('adminCoinAmount').value);
+  if (!a || a <= 0) { toast('အရေအတွက် ရိုက်ပါ', 'error'); return; }
+  await adjustCoins(-a);
+};
+async function adjustCoins(amount) {
+  const reason = $('adminCoinReason').value.trim();
+  const r = await api('adminAdjustCoins', { userId: State.adminCoinUser, amount, reason });
+  if (r.success) {
+    toast(`Coins ${amount > 0 ? '+' : ''}${amount} · လက်ကျန် ${r.newCoins}`, 'success');
+    $('adminCoinModal').classList.remove('open');
+    loadAdminData();
+  } else toast(r.error, 'error');
+}
+function adminOpenPkgModal() {
+  State.adminEditingPkgId = null;
+  State.pkgImageUrl = '';
+  $('adminPkgTitle').textContent = 'Package အသစ်';
+  $('adminPkgName').value = ''; $('adminPkgCoins').value = ''; $('adminPkgPrice').value = '';
+  resetPkgImage();
+  $('adminPkgModal').classList.add('open');
+}
+window.adminOpenPkgModal = adminOpenPkgModal;
+function adminEditPkg(pkgId) {
+  const p = State.packages.find(x => x.id === pkgId);
+  if (!p) return;
+  State.adminEditingPkgId = pkgId;
+  State.pkgImageUrl = p.imageUrl || '';
+  $('adminPkgTitle').textContent = 'Package ပြင်';
+  $('adminPkgName').value = p.name;
+  $('adminPkgCoins').value = p.coins;
+  $('adminPkgPrice').value = p.price;
+  if (p.imageUrl) showPkgImage(p.imageUrl); else resetPkgImage();
+  $('adminPkgModal').classList.add('open');
+}
+window.adminEditPkg = adminEditPkg;
+function resetPkgImage() {
+  $('pkgImageWrap').innerHTML = `<div class="upload-zone" id="pkgUploadZone"><div class="uz-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div><p>ပုံ တင်ရန် နှိပ်ပါ</p><small>PNG / JPG · Max 5MB</small></div>`;
+}
+function showPkgImage(url) {
+  $('pkgImageWrap').innerHTML = `<div class="upload-preview"><img src="${esc(url)}" /><button type="button" class="rm" onclick="removePkgImage()"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
+}
+window.removePkgImage = () => { State.pkgImageUrl = ''; resetPkgImage(); };
+document.addEventListener('click', e => { if (e.target.closest('#pkgUploadZone')) $('pkgImageInput').click(); });
+$('pkgImageInput').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  if (!f.type.startsWith('image/')) { toast('ပုံ ဖိုင်သာ', 'error'); e.target.value=''; return; }
+  if (f.size > 5 * 1024 * 1024) { toast('5MB ကျော်လွန်', 'error'); e.target.value=''; return; }
+  $('pkgImageWrap').innerHTML = `<div class="upload-progress"><div style="font-size:.78rem;color:var(--text-2)">ပုံ တင်နေသည်...</div><div class="bar"><div class="fill" id="pkgFill" style="width:0%"></div></div><div class="pct" id="pkgPct">0%</div></div>`;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    let pct = 0;
+    const prog = setInterval(() => {
+      pct = Math.min(90, pct + Math.random() * 8);
+      const fill = $('pkgFill'), p = $('pkgPct');
+      if (fill) fill.style.width = pct + '%';
+      if (p) p.textContent = Math.round(pct) + '%';
+    }, 100);
+    const r = await api('upload', { base64: reader.result, kind: 'package' }, { loading: false });
+    clearInterval(prog);
+    if (r.success) {
+      State.pkgImageUrl = r.url;
+      setTimeout(() => { showPkgImage(r.url); toast('ပုံ တင်ပြီး', 'success'); }, 300);
+    } else { resetPkgImage(); toast(r.error || 'Upload failed', 'error'); }
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+});
+$('adminPkgSave').onclick = async () => {
+  const name = $('adminPkgName').value.trim();
+  const coins = Number($('adminPkgCoins').value);
+  const price = Number($('adminPkgPrice').value);
+  if (!name || !coins || !price) { toast('အားလုံး ဖြည့်ပါ', 'error'); return; }
+  const pkg = { name, coins, price, imageUrl: State.pkgImageUrl };
+  if (State.adminEditingPkgId) pkg.id = State.adminEditingPkgId;
+  btnLoad($('adminPkgSave'), true);
+  const r = await api('adminSavePackage', { package: pkg });
+  btnLoad($('adminPkgSave'), false);
+  if (r.success) { toast('သိမ်းပြီး', 'success'); $('adminPkgModal').classList.remove('open'); loadAdminData(); }
+  else toast(r.error, 'error');
+};
+async function adminDelPkg(pkgId) {
+  const ok = await confirmDialog({ title:'Package ဖျက်မည်?', yes:'ဖျက်', danger:true });
+  if (!ok) return;
+  await api('adminDeletePackage', { packageId: pkgId });
+  toast('ဖျက်ပြီး', 'success');
+  loadAdminData();
+}
+window.adminDelPkg = adminDelPkg;
+
+/* ============ POLLING ============ */
+function startMainPolling() {
+  stopAllPolling();
+  State.mainPoll = setInterval(async () => {
+    try {
+      if (document.hidden || !State.user || State.isAdmin) return;
+      const role = State.isDriver ? 'driver' : 'rider';
+      const ar = await api('getActiveRide', { userId: State.user.id, role }, { loading: false });
+      if (ar.success) {
+        if (ar.ride) {
+          const oldStatus = State.activeRide?.status;
+          State.activeRide = ar.ride;
+          if (State.isDriver) renderDriverActiveRide();
+          else {
+            renderActiveRide();
+            if (oldStatus !== ar.ride.status && ar.ride.status === 'accepted' && ar.ride.driver) {
+              toast('Taxi လက်ခံပြီးပါပြီ', 'success');
+            }
+          }
+        } else if (State.activeRide) {
+          State.activeRide = null;
+          if (State.isDriver) renderDriverActiveRide();
+          else renderActiveRide();
+          refreshUser();
+          loadMyRides();
+        }
+      }
+      if (State.isDriver && State.isOnline && !State.activeRide) {
+        loadPendingRides();
+        const now = Date.now();
+        if (now - State.lastLocUpdate > 60000) {
+          State.lastLocUpdate = now;
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              p => api('driverUpdateLocation', { userId: State.user.id, location: { lat: p.coords.latitude, lng: p.coords.longitude } }, { loading: false }),
+              () => {}, { timeout: 5000, maximumAge: 60000 }
+            );
+          }
+        }
+      }
+      if (!State.isDriver && State.currentView === 'home') loadAvailableDrivers();
+      const nr = await api('getNotifications', { userId: State.user.id }, { loading: false });
+      if (nr.success) {
+        const hadNew = nr.notifications.some(n => !n.isRead && !State.notifications.find(x => x.id === n.id));
+        State.notifications = nr.notifications || [];
+        updateNotifBadge(); renderNotifications();
+        if (hadNew) refreshUser();
+      }
+      const ur = await api('getUser', { userId: State.user.id }, { loading: false });
+      if (ur.success) {
+        const wasDriver = State.isDriver;
+        State.user = ur.user;
+        // Check driver approval change
+        const dr = await api('getMyDriverProfile', { userId: State.user.id }, { loading: false });
+        if (dr.success && dr.driver) {
+          State.driver = dr.driver;
+          State.isDriver = !!dr.driver.isApproved;
+          if (!wasDriver && State.isDriver) {
+            toast('Admin မှ အတည်ပြုပြီးပါပြီ!', 'success');
+            renderTabBar();
+          }
+        }
+        if (State.isDriver) checkDriverStatus();
+      }
+    } catch (err) { console.error('Poll error:', err); }
+  }, 8000);
+}
+function stopAllPolling() {
+  if (State.mainPoll) clearInterval(State.mainPoll);
+  if (State.chatPoll) clearInterval(State.chatPoll);
+  if (State.groupPoll) clearInterval(State.groupPoll);
+  State.mainPoll = State.chatPoll = State.groupPoll = null;
+}
+
+/* ============ MODALS ============ */
+$('menuBtn').onclick = () => $('menuModal').classList.add('open');
+$('menuProfile').onclick = () => { $('menuModal').classList.remove('open'); switchView('profile'); };
+$('menuGroupChat').onclick = () => { $('menuModal').classList.remove('open'); openGroupChat(); };
+qa('[data-close]').forEach(b => b.onclick = () => $(b.dataset.close).classList.remove('open'));
+qa('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+/* ============ INIT ============ */
+applyTheme(localStorage.getItem('hinthada_theme') || 'light');
+updateModeButtons();
+setupSearch('pickupInput', 'pickupSuggestions', 'pickup');
+setupSearch('dropoffInput', 'dropoffSuggestions', 'dropoff');
+window.addEventListener('error', e => { console.error('Global error:', e.error); });
+</script>
+</body>
+</html>
