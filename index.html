@@ -601,6 +601,309 @@ img{display:block;max-width:100%}
   .app-header,.tab-bar{max-width:600px;left:50%;transform:translateX(-50%);right:auto;width:100%;}
   .app-main{max-width:600px;margin:0 auto;width:100%}
 }
+/* Message send animation */
+@keyframes msgPopIn {
+  0% { opacity:0; transform:translateY(20px) scale(.85); }
+  50% { opacity:.7; transform:translateY(-4px) scale(1.02); }
+  100% { opacity:1; transform:translateY(0) scale(1); }
+}
+.msg.animate-in { animation:msgPopIn .45s cubic-bezier(.34,1.56,.64,1); }
+
+/* Deleting animation */
+@keyframes msgShrink {
+  0% { opacity:1; transform:scale(1); max-height:400px; margin-bottom:.5rem; }
+  40% { opacity:.5; transform:scale(.95); }
+  100% { opacity:0; transform:scale(.8); max-height:0; margin-bottom:0; overflow:hidden; }
+}
+.msg.removing { animation:msgShrink .55s cubic-bezier(.4,0,.2,1) forwards; pointer-events:none; }
+
+/* Delete progress bar inside bubble */
+.msg .deleting-bar {
+  height:4px; width:100%; background:rgba(239,68,68,.2);
+  border-radius:100px; overflow:hidden; margin-top:.4rem;
+}
+.msg .deleting-fill {
+  height:100%; width:0%;
+  background:linear-gradient(90deg,#ef4444,#f87171,#ef4444);
+  background-size:200% 100%;
+  border-radius:100px;
+  animation:delProgress 1.4s ease-in-out infinite, progressShine 1.2s linear infinite;
+  box-shadow:0 0 12px rgba(239,68,68,.8);
+}
+@keyframes delProgress { 0%{width:10%} 45%{width:62%} 100%{width:92%} }
+@keyframes progressShine { to { background-position:200% 0; } }
+.msg .deleting-label {
+  font-size:.62rem; color:#ef4444; font-weight:700;
+  display:inline-flex; align-items:center; gap:.3rem;
+  font-family:var(--mm); margin-top:.25rem;
+}
+.msg .deleting-label::before {
+  content:''; width:6px; height:6px; border-radius:50%; background:#ef4444;
+  animation:blinkDot 1s ease-in-out infinite; box-shadow:0 0 8px #ef4444;
+}
+@keyframes blinkDot { 0%,100%{opacity:.3} 50%{opacity:1} }
+/* ANNOUNCEMENT POPUP */
+#announcementPopup {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  background: rgba(0,0,0,.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .35s ease;
+}
+#announcementPopup.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.ann-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0,0,0,.7);
+  position: relative;
+  transform: scale(.85) translateY(20px);
+  transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+  display: flex;
+  flex-direction: column;
+}
+#announcementPopup.open .ann-box {
+  transform: scale(1) translateY(0);
+}
+.ann-close {
+  position: absolute;
+  top: .7rem;
+  right: .7rem;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.2);
+  transition: transform .15s, background .2s;
+}
+.ann-close:hover {
+  background: rgba(0,0,0,.85);
+  transform: scale(1.08);
+}
+.ann-close:active {
+  transform: scale(.92);
+}
+.ann-close svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ann-image-wrap {
+  width: 100%;
+  max-height: 55vh;
+  overflow: hidden;
+  background: var(--card-2);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ann-image-wrap img {
+  width: 100%;
+  height: auto;
+  max-height: 55vh;
+  object-fit: contain;
+  display: block;
+}
+.ann-image-wrap.clickable {
+  cursor: pointer;
+}
+.ann-image-wrap.clickable::after {
+  content: '🔗 Tap to open link';
+  position: absolute;
+  bottom: .7rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: .35rem .9rem;
+  background: rgba(0,0,0,.75);
+  color: #fff;
+  border-radius: 100px;
+  font-size: .72rem;
+  font-family: var(--mm);
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity .25s;
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+.ann-image-wrap.clickable:hover::after {
+  opacity: 1;
+}
+.ann-body {
+  padding: 1.2rem 1.4rem;
+  overflow-y: auto;
+  flex: 1;
+}
+.ann-title {
+  font-family: var(--mm);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: .5rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+.ann-message {
+  font-family: var(--mm);
+  font-size: .9rem;
+  color: var(--text-2);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.ann-footer {
+  padding: 0 1.4rem 1.3rem;
+}
+.ann-action-btn {
+  width: 100%;
+  padding: .85rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #fff;
+  font-weight: 700;
+  font-size: .9rem;
+  font-family: var(--mm);
+  cursor: pointer;
+  transition: transform .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  border: none;
+}
+.ann-action-btn:active {
+  transform: scale(.97);
+}
+.ann-action-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ADMIN ANNOUNCEMENT LIST */
+.ann-admin-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: .85rem;
+  margin-bottom: .55rem;
+  font-family: var(--mm);
+}
+.ann-admin-item.inactive {
+  opacity: .55;
+}
+.ann-admin-item .head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: .5rem;
+  margin-bottom: .6rem;
+}
+.ann-admin-item .title {
+  font-weight: 700;
+  font-size: .88rem;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+}
+.ann-admin-item .msg {
+  font-size: .75rem;
+  color: var(--text-3);
+  line-height: 1.4;
+  margin-bottom: .5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ann-admin-item .thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  background: var(--card-2);
+}
+.ann-admin-item .meta {
+  display: flex;
+  gap: .6rem;
+  font-size: .68rem;
+  color: var(--text-3);
+  margin-bottom: .6rem;
+  flex-wrap: wrap;
+}
+.ann-admin-item .meta .status-active {
+  color: var(--success);
+  font-weight: 700;
+}
+.ann-admin-item .meta .status-inactive {
+  color: var(--text-3);
+  font-weight: 700;
+}
+.ann-admin-item .btns {
+  display: flex;
+  gap: .35rem;
+}
+.ann-admin-item .btns button {
+  padding: .4rem .7rem;
+  border-radius: 7px;
+  font-size: .7rem;
+  font-weight: 700;
+  font-family: var(--mm);
+  cursor: pointer;
+  transition: all .2s;
+  border: none;
+}
+.ann-admin-item .btns .edit { background: var(--primary-soft); color: var(--primary); }
+.ann-admin-item .btns .toggle-on { background: var(--success); color: #fff; }
+.ann-admin-item .btns .toggle-off { background: var(--warning-soft); color: var(--warning); }
+.ann-admin-item .btns .del { background: var(--danger-soft); color: var(--danger); }
+
+/* Message menu action */
+.msg-action-menu {
+  position:absolute; background:var(--card); border:1px solid var(--border);
+  border-radius:10px; box-shadow:var(--shadow-lg); padding:.3rem;
+  z-index:1000; min-width:140px;
+}
+.msg-action-item {
+  display:flex; align-items:center; gap:.5rem; padding:.55rem .7rem;
+  border-radius:7px; cursor:pointer; font-family:var(--mm); font-size:.82rem;
+  color:var(--text); transition:background var(--ease);
+}
+.msg-action-item:hover, .msg-action-item:active { background:var(--card-2); }
+.msg-action-item.danger { color:var(--danger); }
+.msg-action-item svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; }
 </style>
 </head>
 <body class="light">
@@ -875,6 +1178,7 @@ img{display:block;max-width:100%}
         <button data-atab="drivers">Drivers <span class="tab-badge hidden" id="pendingDriverBadge">0</span></button>
         <button data-atab="purchases">Purchases</button>
         <button data-atab="packages">Packages</button>
+        <button data-atab="announcements">📢 Ads</button>
         <button data-atab="settings">Settings</button>
       </div>
       <div class="container">
@@ -884,6 +1188,7 @@ img{display:block;max-width:100%}
         <div id="atabDrivers" class="hidden"></div>
         <div id="atabPurchases" class="hidden"></div>
         <div id="atabPackages" class="hidden"></div>
+        <div id="atabAnnouncements" class="hidden"></div>
         <div id="atabSettings" class="hidden"></div>
       </div>
     </section>
@@ -1044,6 +1349,17 @@ img{display:block;max-width:100%}
           <img id="buyQrImg" style="max-width:200px;margin:0 auto;border-radius:10px" />
         </div>
       </div>
+      <div class="field">
+        <label>ငွေလွှဲ Screenshot (မဖြစ်မနေ)</label>
+        <div id="proofWrap">
+          <div class="upload-zone" id="proofZone">
+            <div class="uz-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
+            <p>ငွေလွှဲ Screenshot တင်ရန် နှိပ်ပါ</p>
+            <small>PNG / JPG · Max 5MB</small>
+          </div>
+        </div>
+        <input type="file" id="proofInput" accept="image/*" class="hidden" />
+      </div>
       <button class="btn primary btn-block" id="submitBuyBtn">ငွေလွှဲပြီးပါပြီ</button>
     </div>
     <div id="buyStep2" class="hidden" style="text-align:center;padding:1.2rem 0">
@@ -1119,6 +1435,94 @@ img{display:block;max-width:100%}
   </div>
 </div>
 
+<!-- ANNOUNCEMENT POPUP (Full screen) -->
+<div id="announcementPopup">
+  <div class="ann-box">
+    <button type="button" class="ann-close" id="annCloseBtn">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="ann-image-wrap" id="annImageWrap">
+      <img id="annImage" src="" alt="" />
+    </div>
+    <div class="ann-body">
+      <div class="ann-title" id="annTitle"></div>
+      <div class="ann-message" id="annMessage"></div>
+    </div>
+    <div class="ann-footer" id="annFooter" style="display:none">
+      <button type="button" class="ann-action-btn" id="annActionBtn">
+        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        <span>ပိုမိုကြည့်ရှုရန်</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN ANNOUNCEMENT MODAL -->
+<div class="modal" id="announcementModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="annModalTitle">📢 Announcement အသစ်</h3>
+      <div class="x" data-close="announcementModal">
+        <svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>ခေါင်းစဉ် (Title) *</label>
+      <input id="annInputTitle" placeholder="ဥပမာ — ဒီနေ့ အထူးလျှော့စျေး!" maxlength="100" />
+    </div>
+
+    <div class="field">
+      <label>အကြောင်းအရာ (Message)</label>
+      <textarea id="annInputMessage" placeholder="အသေးစိတ် ရေးပါ..." maxlength="500" style="min-height:100px"></textarea>
+    </div>
+
+    <div class="field">
+      <label>ပုံ (Image — optional)</label>
+      <div id="annImageWrapInput">
+        <div class="upload-zone" id="annUploadZone">
+          <div class="uz-icon">
+            <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          </div>
+          <p>ပုံ တင်ရန် နှိပ်ပါ</p>
+          <small>PNG / JPG · Max 5MB</small>
+        </div>
+      </div>
+      <input type="file" id="annImageInput" accept="image/*" class="hidden" />
+    </div>
+
+    <div class="field">
+      <label>လင့် (Link — optional)</label>
+      <input id="annInputLink" placeholder="https://example.com" inputmode="url" />
+      <div style="font-size:.68rem;color:var(--text-3);font-family:var(--mm);margin-top:.35rem">
+        💡 Link မထည့်ရင် ပုံကို နှိပ်လို့ မရပါ။ Link ထည့်ရင် ပုံနှိပ်ရင် Browser ဖွင့်ပါမယ်။
+      </div>
+    </div>
+
+    <div class="field">
+      <label>အခြေအနေ (Status)</label>
+      <div class="pay-methods" style="grid-template-columns:1fr 1fr">
+        <div class="pay-method active" data-ann-status="active" id="annStatusActive">
+          <div class="icon" style="background:var(--success);color:#fff">
+            <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="name">Active</div>
+          <div class="sub">User တွေ မြင်ရမယ်</div>
+        </div>
+        <div class="pay-method" data-ann-status="inactive" id="annStatusInactive">
+          <div class="icon">
+            <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          </div>
+          <div class="name">Inactive</div>
+          <div class="sub">ဖျောက်ထားမယ်</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn primary btn-block" id="annSaveBtn" style="margin-top:.5rem">သိမ်းမည်</button>
+  </div>
+</div>
+
 <!-- CONFIRM -->
 <div class="modal" id="confirmDialog">
   <div class="modal-box">
@@ -1160,7 +1564,9 @@ const State = {
   epAvatarUrl: '', epBgUrl: '', pkgImageUrl: '',
   routeMode: 'pickup', searchTimer: null,
   lastLocUpdate: 0, progressTimer: null,
-  selectedPayMethod: null
+  selectedPayMethod: null,
+  groupMessages: [],
+  groupDeleteIds: new Set()
 };
 
 /* ============ PROGRESS ============ */
@@ -1369,6 +1775,8 @@ async function enterApp() {
   updateNotifBadge();
   renderNotifications();
   startMainPolling();
+  // Load active announcement
+  setTimeout(() => loadActiveAnnouncement(), 1200);
 }
 
 /* ============ TAB BAR ============ */
@@ -2010,25 +2418,86 @@ $('buyMethod').onchange = updateBuyInfo;
 function openBuy(pkgId) {
   State.selectedPkg = State.packages.find(x => x.id === pkgId);
   if (!State.selectedPkg) return;
+  State.proofUrl = '';
   $('buyPkgLabel').textContent = State.selectedPkg.name;
   $('buyPkgCoins').textContent = State.selectedPkg.coins;
   updateBuyInfo();
+  resetProofZone();
   $('buyStep1').classList.remove('hidden');
   $('buyStep2').classList.add('hidden');
   $('buyModal').classList.add('open');
 }
 window.openBuy = openBuy;
+
+function resetProofZone() {
+  $('proofWrap').innerHTML = `<div class="upload-zone" id="proofZone"><div class="uz-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div><p>ငွေလွှဲ Screenshot တင်ရန် နှိပ်ပါ</p><small>PNG / JPG · Max 5MB</small></div>`;
+}
+
+document.addEventListener('click', e => {
+  if (e.target.closest('#proofZone')) $('proofInput').click();
+});
+
+$('proofInput').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  if (!f.type.startsWith('image/')) { toast('ပုံ ဖိုင်သာ ရွေးပါ', 'error'); e.target.value=''; return; }
+  if (f.size > 5 * 1024 * 1024) { toast('ပုံ 5MB ကျော်လွန်ပါ', 'error'); e.target.value=''; return; }
+
+  $('proofWrap').innerHTML = `<div class="upload-progress"><div style="font-size:.78rem;color:var(--text-2)">ပုံ တင်နေသည်...</div><div class="bar"><div class="fill" id="proofFill" style="width:0%"></div></div><div class="pct" id="proofPct">0%</div></div>`;
+
+  const reader = new FileReader();
+  reader.onload = async () => {
+    let pct = 0;
+    const prog = setInterval(() => {
+      pct = Math.min(90, pct + Math.random() * 8);
+      const fill = $('proofFill'), p = $('proofPct');
+      if (fill) fill.style.width = pct + '%';
+      if (p) p.textContent = Math.round(pct) + '%';
+    }, 100);
+
+    const r = await api('upload', { base64: reader.result, kind: 'payment' }, { loading: false });
+    clearInterval(prog);
+
+    if (r.success) {
+      State.proofUrl = r.url;
+      setTimeout(() => {
+        $('proofWrap').innerHTML = `<div class="upload-preview"><img src="${esc(r.url)}" /><button type="button" class="rm" onclick="removeProof()"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
+        toast('Screenshot တင်ပြီး', 'success');
+      }, 300);
+    } else {
+      resetProofZone();
+      toast(r.error || 'Upload failed', 'error');
+    }
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+});
+
+window.removeProof = () => {
+  State.proofUrl = '';
+  resetProofZone();
+};
+
+/* ============ BUY COINS SUBMIT ============ */
 $('submitBuyBtn').onclick = async () => {
-  if (!State.selectedPkg) return;
+  if (!State.selectedPkg) { toast('Package ရွေးပါ', 'error'); return; }
+  if (!State.proofUrl) {
+    toast('ငွေလွှဲ Screenshot မဖြစ်မနေ တင်ပါ', 'error');
+    return;
+  }
   btnLoad($('submitBuyBtn'), true);
-  const r = await api('buyCoins', { userId: State.user.id, packageId: State.selectedPkg.id, method: $('buyMethod').value });
+  const r = await api('buyCoins', {
+    userId: State.user.id,
+    packageId: State.selectedPkg.id,
+    method: $('buyMethod').value,
+    proofUrl: State.proofUrl
+  }, { label: 'ပို့နေသည်...' });
   btnLoad($('submitBuyBtn'), false);
   if (!r.success) { toast(r.error, 'error'); return; }
   $('buyStep1').classList.add('hidden');
   $('buyStep2').classList.remove('hidden');
   loadPurchases();
 };
-
 /* ============ PROFILE ============ */
 function renderProfile() {
   try {
@@ -2305,6 +2774,7 @@ async function sendChatMessage() {
 function openGroupChat() {
   if (!State.isDriver) { toast('Taxi သမား များ အတွက်သာ', 'error'); return; }
   $('groupChatPanel').classList.add('open');
+  State.groupDeleteIds = new Set();
   loadGroupMessages();
   if (State.groupPoll) clearInterval(State.groupPoll);
   State.groupPoll = setInterval(loadGroupMessages, 4500);
@@ -2313,32 +2783,168 @@ $('groupChatBackBtn').onclick = () => {
   $('groupChatPanel').classList.remove('open');
   if (State.groupPoll) { clearInterval(State.groupPoll); State.groupPoll = null; }
 };
+
 async function loadGroupMessages() {
   const r = await api('getGroupMessages', {}, { loading: false });
   if (!r.success) return;
   const c = $('groupMessages');
   const atBottom = c.scrollTop + c.clientHeight >= c.scrollHeight - 60;
+  const existingIds = new Set(State.groupMessages.map(m => m.id));
+  State.groupMessages = r.messages || [];
+
   if (!r.messages.length) {
     c.innerHTML = '<div class="empty"><div class="ic"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div>မက်ဆေ့ခ်ျ မရှိပါ — စတင် စကားပြောပါ</div></div>';
-  } else {
-    c.innerHTML = r.messages.map(m => {
-      const mine = m.fromUserId === State.user.id;
-      const initial = (m.fromName || 'D').charAt(0).toUpperCase();
-      const av = m.fromImage ? `<img src="${esc(m.fromImage)}"/>` : initial;
-      return `<div class="msg ${mine ? 'mine' : 'theirs'}">
-        <div class="sender-av">${av}</div>
-        <div class="content-wrap">
-          ${!mine ? `<div class="sender-name">${esc(m.fromName || 'Driver')}</div>` : ''}
-          <div class="bub">${esc(m.content)}</div>
-          <div class="meta">${timeShort(m.createdAt)}</div>
-        </div>
-      </div>`;
-    }).join('');
+    return;
   }
+
+  c.innerHTML = r.messages.map(m => {
+    const mine = m.fromUserId === State.user.id;
+    const initial = (m.fromName || 'D').charAt(0).toUpperCase();
+    const av = m.fromImage ? `<img src="${esc(m.fromImage)}"/>` : initial;
+    const isNew = !existingIds.has(m.id);
+    const isDeleting = State.groupDeleteIds && State.groupDeleteIds.has(m.id);
+    const deletingHtml = isDeleting ? `
+      <div class="deleting-bar"><div class="deleting-fill"></div></div>
+      <div class="deleting-label">ဖျက်နေသည်...</div>` : '';
+    return `<div class="msg ${mine ? 'mine' : 'theirs'}${isNew ? ' animate-in' : ''}${isDeleting ? ' removing' : ''}" data-mid="${m.id}" data-mine="${mine}">
+      <div class="sender-av">${av}</div>
+      <div class="content-wrap">
+        ${!mine ? `<div class="sender-name">${esc(m.fromName || 'Driver')}</div>` : ''}
+        <div class="bub">${esc(m.content)}</div>
+        ${deletingHtml}
+        <div class="meta">${timeShort(m.createdAt)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Long press on message to see menu
+  c.querySelectorAll('.msg').forEach(el => {
+    const mid = el.dataset.mid;
+    const isMine = el.dataset.mine === 'true';
+    if (!isMine) return;
+
+    let pressTimer = null;
+    let longPressed = false;
+
+    const startPress = () => {
+      longPressed = false;
+      pressTimer = setTimeout(() => {
+        longPressed = true;
+        if (navigator.vibrate) navigator.vibrate(30);
+        showMsgDeleteMenu(el, mid);
+      }, 500);
+    };
+    const cancelPress = () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } };
+
+    el.addEventListener('mousedown', startPress);
+    el.addEventListener('touchstart', startPress, { passive: true });
+    el.addEventListener('mouseup', cancelPress);
+    el.addEventListener('mouseleave', cancelPress);
+    el.addEventListener('touchend', cancelPress);
+    el.addEventListener('touchcancel', cancelPress);
+    el.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      if (!longPressed) showMsgDeleteMenu(el, mid);
+    });
+  });
+
   if (atBottom) c.scrollTop = c.scrollHeight;
 }
+
+function showMsgDeleteMenu(el, mid) {
+  // Remove any existing menu
+  const existing = document.querySelector('.msg-action-menu');
+  if (existing) existing.remove();
+
+  const rect = el.getBoundingClientRect();
+  const menu = document.createElement('div');
+  menu.className = 'msg-action-menu';
+  menu.innerHTML = `
+    <div class="msg-action-item danger" onclick="deleteGroupMsg('${mid}')">
+      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg>
+      ဖျက်မည်
+    </div>`;
+
+  // Position above or below the message
+  menu.style.left = Math.min(rect.left, window.innerWidth - 160) + 'px';
+  if (rect.top > 200) menu.style.top = (rect.top - 50) + 'px';
+  else menu.style.top = (rect.bottom + 8) + 'px';
+
+  document.body.appendChild(menu);
+
+  // Close on click outside
+  setTimeout(() => {
+    const closeHandler = (e) => {
+      if (!e.target.closest('.msg-action-menu')) {
+        menu.remove();
+        document.removeEventListener('click', closeHandler);
+        document.removeEventListener('touchstart', closeHandler);
+      }
+    };
+    document.addEventListener('click', closeHandler);
+    document.addEventListener('touchstart', closeHandler);
+  }, 50);
+}
+window.showMsgDeleteMenu = showMsgDeleteMenu;
+
+window.deleteGroupMsg = async function(mid) {
+  const existing = document.querySelector('.msg-action-menu');
+  if (existing) existing.remove();
+
+  const ok = await confirmDialog({
+    icon: '🗑️', title: 'စာ ဖျက်မည်?',
+    message: 'ဒီစာကို ဖျက်လိုက်ရင် ပြန်မရနိုင်ပါ။',
+    yes: 'ဖျက်', danger: true
+  });
+  if (!ok) return;
+
+  if (!State.groupDeleteIds) State.groupDeleteIds = new Set();
+  State.groupDeleteIds.add(mid);
+
+  // Add removing class with progress
+  const el = document.querySelector(`.msg[data-mid="${mid}"]`);
+  if (el) {
+    const contentWrap = el.querySelector('.content-wrap');
+    if (contentWrap && !contentWrap.querySelector('.deleting-bar')) {
+      const bar = document.createElement('div');
+      bar.className = 'deleting-bar';
+      bar.innerHTML = '<div class="deleting-fill"></div>';
+      const lbl = document.createElement('div');
+      lbl.className = 'deleting-label';
+      lbl.textContent = 'ဖျက်နေသည်...';
+      contentWrap.appendChild(bar);
+      contentWrap.appendChild(lbl);
+    }
+  }
+
+  const MIN_SHOW = 950;
+  const startTs = Date.now();
+
+  try {
+    const r = await api('deleteGroupMessage', { messageId: mid, userId: State.user.id }, { loading: false });
+    if (!r.success) throw new Error(r.error || 'Delete failed');
+
+    const elapsed = Date.now() - startTs;
+    if (elapsed < MIN_SHOW) await new Promise(res => setTimeout(res, MIN_SHOW - elapsed));
+
+    if (el) {
+      el.classList.add('removing');
+      await new Promise(res => setTimeout(res, 550));
+    }
+
+    State.groupDeleteIds.delete(mid);
+    toast('ဖျက်ပြီးပါပြီ', 'success');
+    loadGroupMessages();
+  } catch (err) {
+    State.groupDeleteIds.delete(mid);
+    if (el) el.classList.remove('removing');
+    toast('ဖျက်မရပါ: ' + err.message, 'error');
+  }
+};
+
 $('groupSendBtn').onclick = sendGroupMessage;
 $('groupInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendGroupMessage(); }});
+
 async function sendGroupMessage() {
   const content = $('groupInput').value.trim();
   if (!content) return;
@@ -2348,7 +2954,7 @@ async function sendGroupMessage() {
   const initial = (State.user.name || 'D').charAt(0).toUpperCase();
   const av = State.user.profileImage ? `<img src="${esc(State.user.profileImage)}"/>` : initial;
   const tempMsg = document.createElement('div');
-  tempMsg.className = 'msg mine pending';
+  tempMsg.className = 'msg mine pending animate-in';
   tempMsg.id = tempId;
   tempMsg.innerHTML = `<div class="sender-av">${av}</div>
     <div class="content-wrap">
@@ -2358,6 +2964,8 @@ async function sendGroupMessage() {
     </div>`;
   c.appendChild(tempMsg);
   c.scrollTop = c.scrollHeight;
+  if (navigator.vibrate) navigator.vibrate(15);
+
   const r = await api('sendGroupMessage', { userId: State.user.id, content }, { loading: false });
   const el = $(tempId);
   if (r.success) {
@@ -2377,10 +2985,12 @@ async function sendGroupMessage() {
 qa('#adminTabs button').forEach(b => b.onclick = () => {
   qa('#adminTabs button').forEach(x => x.classList.remove('active'));
   b.classList.add('active');
-  ['dashboard','users','rides','drivers','purchases','packages','settings'].forEach(t => {
+  ['dashboard','users','rides','drivers','purchases','packages','settings','announcements'].forEach(t => {
     const el = $('atab' + t.charAt(0).toUpperCase() + t.slice(1));
     if (el) el.classList.toggle('hidden', t !== b.dataset.atab);
   });
+  if (b.dataset.atab === 'settings') renderAdminSettings();
+  if (b.dataset.atab === 'announcements') loadAdminAnnouncements();
 });
 async function loadAdminData() {
   const r = await api('adminBootstrap', {}, { label: 'Admin data ရယူနေသည်...' });
@@ -2393,6 +3003,7 @@ async function loadAdminData() {
   renderAdminDrivers(r.drivers || []);
   renderAdminPurchases(r.purchases || []);
   renderAdminPackages(r.packages || []);
+  loadAdminAnnouncements();
   renderAdminSettings();
   updatePendingDriverBadge();
 }
@@ -2546,13 +3157,38 @@ window.adminApproveDriver = adminApproveDriver;
 function renderAdminPurchases(purchases) {
   $('atabPurchases').innerHTML = purchases.map(p => {
     const colors = { approved:'var(--success)', rejected:'var(--danger)', pending:'var(--warning)' };
+
+    const proofHtml = p.proofUrl
+      ? `<div style="margin-top:.7rem;padding-top:.7rem;border-top:1px dashed var(--border)">
+          <div style="font-size:.72rem;color:var(--text-3);font-family:var(--mm);margin-bottom:.4rem;display:flex;align-items:center;gap:.35rem;font-weight:600">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            ငွေလွှဲ Transfer Slip — နှိပ်ပြီး အကြီးကြီး ကြည့်ပါ
+          </div>
+          <div onclick="openImageViewer('${esc(p.proofUrl)}')" style="cursor:zoom-in;display:inline-block;position:relative;border-radius:10px;overflow:hidden;border:2px solid var(--border);transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform='scale(1.03)';this.style.boxShadow='0 6px 20px rgba(37,99,235,.3)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none'">
+            <img src="${esc(p.proofUrl)}" style="max-width:180px;max-height:250px;object-fit:cover;display:block" />
+            <div style="position:absolute;top:.4rem;right:.4rem;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+              <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </div>
+          </div>
+        </div>`
+      : `<div style="margin-top:.6rem;padding:.6rem .8rem;background:var(--danger-soft);border-radius:8px;font-size:.73rem;color:var(--danger);font-family:var(--mm);display:flex;align-items:center;gap:.4rem">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Transfer Slip မတင်ထားပါ
+        </div>`;
+
     return `<div class="admin-item">
-      <div class="row">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.6rem">
         <div style="flex:1;min-width:0">
-          <div class="title">${esc(p.userName || 'User')} · 🪙 ${p.coins}</div>
-          <div class="sub">📱 ${esc(p.userPhone || '')}<br>${fmt(p.price)} ကျပ် · ${p.method.toUpperCase()} · <span style="color:${colors[p.status]};font-weight:700">${p.status.toUpperCase()}</span></div>
+          <div class="title">${esc(p.userName || 'User')} · 🪙 ${p.coins} coins</div>
+          <div class="sub">📱 ${esc(p.userPhone || '')}</div>
+          <div class="sub">${fmt(p.price)} ကျပ် · ${(p.method||'kpay').toUpperCase()} · <span style="color:${colors[p.status]};font-weight:700">${p.status.toUpperCase()}</span></div>
+          <div class="sub">📅 ${timeAgo(p.createdAt)}</div>
+          ${proofHtml}
         </div>
-        ${p.status === 'pending' ? `<div class="actions"><button class="approve" onclick="adminPurchase('${p.id}', 'approved')">✓</button><button class="reject" onclick="adminPurchase('${p.id}', 'rejected')">✕</button></div>` : ''}
+        ${p.status === 'pending' ? `<div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">
+          <button class="btn success sm" onclick="adminPurchase('${p.id}', 'approved')" style="padding:.5rem .8rem;font-size:.75rem;min-width:90px">✓ Approve</button>
+          <button class="btn danger sm" onclick="adminPurchase('${p.id}', 'rejected')" style="padding:.5rem .8rem;font-size:.75rem;min-width:90px">✕ Reject</button>
+        </div>` : ''}
       </div>
     </div>`;
   }).join('') || '<div class="empty">Purchases မရှိပါ</div>';
@@ -2892,12 +3528,399 @@ $('menuGroupChat').onclick = () => { $('menuModal').classList.remove('open'); op
 qa('[data-close]').forEach(b => b.onclick = () => $(b.dataset.close).classList.remove('open'));
 qa('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
 
+
+/* ============ ANNOUNCEMENTS ============ */
+State.currentAnn = null;
+State.annImageUrl = '';
+State.editingAnnId = null;
+
+function showAnnouncement(ann) {
+  if (!ann || !ann.title) return;
+  const pop = $('announcementPopup');
+  $('annTitle').textContent = ann.title || '';
+  $('annMessage').textContent = ann.message || '';
+
+  const imgWrap = $('annImageWrap');
+  const img = $('annImage');
+  const footer = $('annFooter');
+  const actionBtn = $('annActionBtn');
+
+  if (ann.imageUrl) {
+    img.src = ann.imageUrl;
+    imgWrap.style.display = 'flex';
+  } else {
+    imgWrap.style.display = 'none';
+  }
+
+  if (ann.link) {
+    footer.style.display = 'block';
+    actionBtn.querySelector('span').textContent = 'ပိုမိုကြည့်ရှုရန်';
+    actionBtn.onclick = () => {
+      window.open(ann.link, '_blank', 'noopener,noreferrer');
+    };
+    if (ann.imageUrl) {
+      imgWrap.classList.add('clickable');
+      imgWrap.onclick = (e) => {
+        e.stopPropagation();
+        window.open(ann.link, '_blank', 'noopener,noreferrer');
+      };
+    } else {
+      imgWrap.classList.remove('clickable');
+      imgWrap.onclick = null;
+    }
+  } else {
+    footer.style.display = 'none';
+    imgWrap.classList.remove('clickable');
+    imgWrap.onclick = null;
+  }
+
+  pop.classList.add('open');
+}
+window.showAnnouncement = showAnnouncement;
+
+function closeAnnouncement() {
+  $('announcementPopup').classList.remove('open');
+}
+window.closeAnnouncement = closeAnnouncement;
+
+$('annCloseBtn').onclick = closeAnnouncement;
+// Don't close on backdrop click — only on X button (per user requirement)
+// $('announcementPopup').onclick = (e) => { if (e.target.id === 'announcementPopup') closeAnnouncement(); };
+
+async function loadActiveAnnouncement() {
+  try {
+    const r = await api('getActiveAnnouncement', {}, { loading: false });
+    if (r.success && r.announcement) {
+      State.currentAnn = r.announcement;
+      setTimeout(() => showAnnouncement(r.announcement), 800);
+    }
+  } catch (err) { console.error('Ann load error:', err); }
+}
+window.loadActiveAnnouncement = loadActiveAnnouncement;
+
+/* ============ ADMIN ANNOUNCEMENTS ============ */
+async function loadAdminAnnouncements() {
+  const c = $('atabAnnouncements');
+  if (!c) return;
+
+  // ✅ Button အမြဲ ပြပါ
+  const addButton = `
+    <button class="btn primary btn-block" onclick="adminOpenAnnModal()" style="margin-bottom:.8rem">
+      <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      📢 Announcement အသစ်
+    </button>`;
+
+  c.innerHTML = addButton + '<div style="text-align:center;padding:2rem"><div class="spinner-xs" style="width:22px;height:22px;border-color:rgba(37,99,235,.2);border-top-color:var(--primary)"></div></div>';
+
+  try {
+    const r = await api('adminGetAnnouncements', {}, { loading: false });
+    const list = r.announcements || [];
+
+    if (!list.length) {
+      c.innerHTML = addButton + '<div class="empty">📭 Announcement မရှိသေးပါ<br><span style="font-size:.72rem;opacity:.7">အပေါ်က button ကို နှိပ်ပြီး ဖန်တီးပါ</span></div>';
+      return;
+    }
+
+    c.innerHTML = addButton + list.map(a => `
+      <div class="ann-admin-item ${a.isActive ? '' : 'inactive'}">
+        <div class="head">
+          <div class="title">${esc(a.title || '')}</div>
+          ${a.imageUrl ? `<img class="thumb" src="${esc(a.imageUrl)}" />` : ''}
+        </div>
+        ${a.message ? `<div class="msg">${esc(a.message)}</div>` : ''}
+        <div class="meta">
+          <span class="${a.isActive ? 'status-active' : 'status-inactive'}">● ${a.isActive ? 'ACTIVE' : 'INACTIVE'}</span>
+          ${a.link ? `<span>🔗 Link ရှိ</span>` : '<span>🔗 Link မရှိ</span>'}
+          <span>📅 ${timeAgo(a.createdAt)}</span>
+        </div>
+        <div class="btns">
+          <button class="edit" onclick="adminEditAnn('${a.id}')">✏️ Edit</button>
+          <button class="${a.isActive ? 'toggle-off' : 'toggle-on'}" onclick="adminToggleAnn('${a.id}', ${!a.isActive})">
+            ${a.isActive ? '⏸ Deactivate' : '▶ Activate'}
+          </button>
+          <button class="del" onclick="adminDelAnn('${a.id}')">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    c.innerHTML = addButton + `<div class="empty" style="color:var(--danger)">Error: ${esc(err.message)}</div>`;
+  }
+}
+window.loadAdminAnnouncements = loadAdminAnnouncements;
+
+let _currentAnns = [];
+
+async function adminOpenAnnModal() {
+  State.editingAnnId = null;
+  State.annImageUrl = '';
+  $('annModalTitle').textContent = '📢 Announcement အသစ်';
+  $('annInputTitle').value = '';
+  $('annInputMessage').value = '';
+  $('annInputLink').value = '';
+  qa('[data-ann-status]').forEach(el => el.classList.remove('active'));
+  $('annStatusActive').classList.add('active');
+  resetAnnImage();
+  $('announcementModal').classList.add('open');
+}
+window.adminOpenAnnModal = adminOpenAnnModal;
+
+async function adminEditAnn(id) {
+  try {
+    const r = await api('adminGetAnnouncements', {}, { loading: false });
+    const a = (r.announcements || []).find(x => x.id === id);
+    if (!a) { toast('Announcement not found', 'error'); return; }
+    State.editingAnnId = id;
+    State.annImageUrl = a.imageUrl || '';
+    $('annModalTitle').textContent = '✏️ Announcement ပြင်';
+    $('annInputTitle').value = a.title || '';
+    $('annInputMessage').value = a.message || '';
+    $('annInputLink').value = a.link || '';
+    qa('[data-ann-status]').forEach(el => el.classList.remove('active'));
+    if (a.isActive) $('annStatusActive').classList.add('active');
+    else $('annStatusInactive').classList.add('active');
+    if (a.imageUrl) showAnnImage(a.imageUrl);
+    else resetAnnImage();
+    $('announcementModal').classList.add('open');
+  } catch (err) { toast(err.message, 'error'); }
+}
+window.adminEditAnn = adminEditAnn;
+
+async function adminToggleAnn(id, isActive) {
+  await api('adminToggleAnnouncement', { announcementId: id, isActive });
+  toast(isActive ? '✓ Active ပြီ' : '⏸ Inactive ပြီ', 'success');
+  loadAdminAnnouncements();
+}
+window.adminToggleAnn = adminToggleAnn;
+
+async function adminDelAnn(id) {
+  const ok = await confirmDialog({ icon:'🗑️', title:'Announcement ဖျက်မည်?', yes:'ဖျက်', danger:true });
+  if (!ok) return;
+  await api('adminDeleteAnnouncement', { announcementId: id });
+  toast('ဖျက်ပြီး', 'success');
+  loadAdminAnnouncements();
+}
+window.adminDelAnn = adminDelAnn;
+
+function resetAnnImage() {
+  $('annImageWrapInput').innerHTML = `<div class="upload-zone" id="annUploadZone"><div class="uz-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div><p>ပုံ တင်ရန် နှိပ်ပါ</p><small>PNG / JPG · Max 5MB</small></div>`;
+}
+function showAnnImage(url) {
+  $('annImageWrapInput').innerHTML = `<div class="upload-preview"><img src="${esc(url)}" /><button type="button" class="rm" onclick="removeAnnImage()"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
+}
+window.removeAnnImage = () => { State.annImageUrl = ''; resetAnnImage(); };
+
+// Click on upload zone
+document.addEventListener('click', e => {
+  if (e.target.closest('#annUploadZone')) $('annImageInput').click();
+});
+
+// Announcement image upload
+$('annImageInput').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  if (!f.type.startsWith('image/')) { toast('ပုံ ဖိုင်သာ', 'error'); e.target.value=''; return; }
+  if (f.size > 5 * 1024 * 1024) { toast('5MB ကျော်လွန်', 'error'); e.target.value=''; return; }
+
+  $('annImageWrapInput').innerHTML = `<div class="upload-progress"><div style="font-size:.78rem;color:var(--text-2)">ပုံ တင်နေသည်...</div><div class="bar"><div class="fill" id="annFill" style="width:0%"></div></div><div class="pct" id="annPct">0%</div></div>`;
+
+  const reader = new FileReader();
+  reader.onload = async () => {
+    let pct = 0;
+    const prog = setInterval(() => {
+      pct = Math.min(90, pct + Math.random() * 8);
+      const fill = $('annFill'), p = $('annPct');
+      if (fill) fill.style.width = pct + '%';
+      if (p) p.textContent = Math.round(pct) + '%';
+    }, 100);
+
+    const r = await api('upload', { base64: reader.result, kind: 'announcement' }, { loading: false });
+    clearInterval(prog);
+
+    if (r.success) {
+      State.annImageUrl = r.url;
+      setTimeout(() => { showAnnImage(r.url); toast('ပုံ တင်ပြီး', 'success'); }, 300);
+    } else {
+      resetAnnImage();
+      toast(r.error || 'Upload failed', 'error');
+    }
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+});
+
+// Status picker
+qa('[data-ann-status]').forEach(el => el.onclick = () => {
+  qa('[data-ann-status]').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+});
+
+$('annSaveBtn').onclick = async () => {
+  const title = $('annInputTitle').value.trim();
+  if (!title) { toast('ခေါင်းစဉ် ဖြည့်ပါ', 'error'); return; }
+
+  const statusEl = document.querySelector('[data-ann-status].active');
+  const isActive = statusEl ? statusEl.dataset.annStatus === 'active' : true;
+
+  const announcement = {
+    title,
+    message: $('annInputMessage').value.trim(),
+    link: $('annInputLink').value.trim(),
+    imageUrl: State.annImageUrl,
+    isActive,
+  };
+  if (State.editingAnnId) announcement.id = State.editingAnnId;
+
+  btnLoad($('annSaveBtn'), true);
+  const r = await api('adminSaveAnnouncement', { announcement });
+  btnLoad($('annSaveBtn'), false);
+  if (!r.success) { toast(r.error, 'error'); return; }
+  toast('✓ သိမ်းပြီး', 'success');
+  $('announcementModal').classList.remove('open');
+  loadAdminAnnouncements();
+};
 /* ============ INIT ============ */
 applyTheme(localStorage.getItem('hinthada_theme') || 'light');
 updateModeButtons();
 setupSearch('pickupInput', 'pickupSuggestions', 'pickup');
 setupSearch('dropoffInput', 'dropoffSuggestions', 'dropoff');
 window.addEventListener('error', e => { console.error('Global error:', e.error); });
+
+/* ============ BACK BUTTON HANDLING ============ */
+let _exitIntentTime = 0;
+let _backLocked = false;
+let _navStack = []; // screen history
+
+function pushNav(screen) {
+  _navStack.push(screen);
+  if (_navStack.length > 30) _navStack.shift();
+}
+
+function _handleBackPress() {
+  // 1. If any modal open — close it
+  const openModals = Array.from(document.querySelectorAll('.modal.open'));
+  if (openModals.length) {
+    openModals[openModals.length - 1].classList.remove('open');
+    return true;
+  }
+
+  // 2. If chat panels open — close them
+  if ($('chatPanel').classList.contains('open')) {
+    $('chatPanel').classList.remove('open');
+    if (State.chatPoll) { clearInterval(State.chatPoll); State.chatPoll = null; }
+    return true;
+  }
+  if ($('groupChatPanel').classList.contains('open')) {
+    $('groupChatPanel').classList.remove('open');
+    if (State.groupPoll) { clearInterval(State.groupPoll); State.groupPoll = null; }
+    return true;
+  }
+
+  // 3. If not on the primary tab view — go back to previous
+  const primaries = ['home', 'driver', 'admin'];
+  const isPrimary = primaries.includes(State.currentView);
+  if (!isPrimary) {
+    // Return to primary based on role
+    if (State.isAdmin) switchView('admin');
+    else if (State.isDriver) switchView('driver');
+    else switchView('home');
+    return true;
+  }
+
+  // 4. Nothing to close — show "press again to exit"
+  return false;
+}
+
+function setupBackButton() {
+  try {
+    history.replaceState({ taxiRoot: true }, '', location.pathname + location.search);
+    history.pushState({ taxiNav: 1 }, '', location.pathname + location.search);
+  } catch(_) {}
+
+  window.addEventListener('popstate', () => {
+    if (_backLocked) return;
+    _backLocked = true;
+    const handled = _handleBackPress();
+    if (handled) {
+      try {
+        history.pushState({ taxiNav: Date.now() }, '', location.pathname + location.search);
+      } catch(_) {}
+    } else {
+      const now = Date.now();
+      if (now - _exitIntentTime < 2000) {
+        // Second press within 2 seconds — exit
+        try { history.back(); } catch(_) {}
+      } else {
+        _exitIntentTime = now;
+        try {
+          history.pushState({ taxiNav: Date.now() }, '', location.pathname + location.search);
+        } catch(_) {}
+        toast('ထွက်ရန် နောက်တစ်ခါ ပြန်နှိပ်ပါ', 'info');
+      }
+    }
+    setTimeout(() => { _backLocked = false; }, 100);
+  });
+}
+setupBackButton();
+
+/* ============ IMAGE VIEWER (Zoom Transfer Slip) ============ */
+function openImageViewer(url) {
+  if (!url) return;
+  let viewer = document.getElementById('taxiImageViewer');
+  if (!viewer) {
+    viewer = document.createElement('div');
+    viewer.id = 'taxiImageViewer';
+    viewer.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.96);display:flex;align-items:center;justify-content:center;padding:1rem;cursor:zoom-out;opacity:0;transition:opacity .25s;backdrop-filter:blur(8px)';
+    viewer.innerHTML = `
+      <button type="button" onclick="event.stopPropagation();closeImageViewer()" style="position:absolute;top:1rem;right:1rem;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);z-index:2;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">
+        <svg viewBox="0 0 24 24" style="width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <button type="button" onclick="event.stopPropagation();downloadTaxiImage()" style="position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);padding:.7rem 1.6rem;background:rgba(255,255,255,.15);color:#fff;border-radius:100px;font-size:.88rem;font-weight:600;cursor:pointer;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;gap:.5rem;font-family:var(--mm);z-index:2;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">
+        <svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Save Image
+      </button>
+      <img id="taxiImageViewerImg" style="max-width:95vw;max-height:85vh;object-fit:contain;border-radius:14px;box-shadow:0 20px 80px rgba(0,0,0,.9);animation:imgZoomIn .3s cubic-bezier(.34,1.56,.64,1)" />
+    `;
+    viewer.onclick = () => closeImageViewer();
+    document.body.appendChild(viewer);
+    // Add animation
+    const style = document.createElement('style');
+    style.textContent = '@keyframes imgZoomIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}';
+    document.head.appendChild(style);
+  }
+  const img = viewer.querySelector('#taxiImageViewerImg');
+  img.src = url;
+  viewer.dataset.url = url;
+  requestAnimationFrame(() => viewer.style.opacity = '1');
+}
+window.openImageViewer = openImageViewer;
+
+function closeImageViewer() {
+  const viewer = document.getElementById('taxiImageViewer');
+  if (!viewer) return;
+  viewer.style.opacity = '0';
+  setTimeout(() => { viewer.remove(); }, 250);
+}
+window.closeImageViewer = closeImageViewer;
+
+function downloadTaxiImage() {
+  const viewer = document.getElementById('taxiImageViewer');
+  if (!viewer) return;
+  const url = viewer.dataset.url;
+  if (!url) return;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'transfer-slip-' + Date.now() + '.jpg';
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+window.downloadTaxiImage = downloadTaxiImage;
+
+// ESC key to close viewer
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeImageViewer();
+});
 </script>
 </body>
 </html>
